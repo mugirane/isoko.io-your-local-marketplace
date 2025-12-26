@@ -14,11 +14,11 @@ import { toast } from "@/hooks/use-toast";
 const StorePage = () => {
   const { id } = useParams();
   const store = MOCK_STORES.find((s) => s.id === id);
-  const storeProducts = MOCK_PRODUCTS.filter((p) => p.storeId === id);
+  const storeProducts = MOCK_PRODUCTS.filter((p) => p.store_id === id);
   const category = CATEGORIES.find((c) => c.id === store?.category);
   
   const [isFollowing, setIsFollowing] = useState(false);
-  const [followerCount, setFollowerCount] = useState(store?.followers || 0);
+  const [followerCount, setFollowerCount] = useState(store?.followers_count || 0);
 
   if (!store) {
     return (
@@ -52,7 +52,7 @@ const StorePage = () => {
     if (navigator.share) {
       navigator.share({
         title: store.name,
-        text: store.description,
+        text: store.description || '',
         url: window.location.href,
       });
     } else {
@@ -89,7 +89,7 @@ const StorePage = () => {
           {/* Cover Image */}
           <div className="h-48 md:h-64 overflow-hidden">
             <img
-              src={store.coverImage}
+              src={store.cover_image || "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800"}
               alt={store.name}
               className="w-full h-full object-cover"
             />
@@ -106,7 +106,7 @@ const StorePage = () => {
                 className="h-24 w-24 md:h-32 md:w-32 rounded-2xl border-4 border-background bg-card shadow-lg overflow-hidden"
               >
                 <img
-                  src={store.logo}
+                  src={store.logo || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200"}
                   alt={`${store.name} logo`}
                   className="w-full h-full object-cover"
                 />
@@ -129,7 +129,7 @@ const StorePage = () => {
                     <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <MapPin className="h-4 w-4" />
-                        {store.location.address}
+                        {store.address}
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <Phone className="h-4 w-4" />
@@ -205,13 +205,13 @@ const StorePage = () => {
                       <Mail className="h-4 w-4" /> {store.email}
                     </p>
                     <p className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" /> {store.location.address}
+                      <MapPin className="h-4 w-4" /> {store.address}
                     </p>
                   </div>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Owner</h3>
-                  <p className="text-muted-foreground">{store.ownerName}</p>
+                  <p className="text-muted-foreground">{store.owner_name}</p>
                 </div>
               </div>
             </TabsContent>
@@ -220,7 +220,7 @@ const StorePage = () => {
               <div className="rounded-2xl overflow-hidden border bg-secondary h-80 flex items-center justify-center">
                 <div className="text-center">
                   <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">{store.location.address}</p>
+                  <p className="text-muted-foreground">{store.address}</p>
                   <p className="text-sm text-muted-foreground mt-2">
                     Map integration coming soon
                   </p>

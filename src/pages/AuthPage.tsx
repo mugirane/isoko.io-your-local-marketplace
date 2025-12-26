@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,36 +8,93 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const AuthPage = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [signInEmail, setSignInEmail] = useState("");
+  const [signInPassword, setSignInPassword] = useState("");
+  const [signUpName, setSignUpName] = useState("");
+  const [signUpEmail, setSignUpEmail] = useState("");
+  const [signUpPassword, setSignUpPassword] = useState("");
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session?.user) {
+          navigate("/");
+        }
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        navigate("/");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: signInEmail,
+      password: signInPassword,
+    });
+
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        title: "Sign in failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-    }, 1500);
+      navigate("/");
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    const redirectUrl = `${window.location.origin}/`;
+
+    const { error } = await supabase.auth.signUp({
+      email: signUpEmail,
+      password: signUpPassword,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          full_name: signUpName,
+        },
+      },
+    });
+
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        title: "Sign up failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
       toast({
         title: "Account created!",
-        description: "Please check your email to verify your account.",
+        description: "You have been signed in successfully.",
       });
-    }, 1500);
+      navigate("/");
+    }
   };
 
   return (
@@ -134,6 +191,8 @@ const AuthPage = () => {
                             type="email"
                             placeholder="your@email.com"
                             className="pl-10"
+                            value={signInEmail}
+                            onChange={(e) => setSignInEmail(e.target.value)}
                             required
                           />
                         </div>
@@ -147,6 +206,8 @@ const AuthPage = () => {
                             type="password"
                             placeholder="••••••••"
                             className="pl-10"
+                            value={signInPassword}
+                            onChange={(e) => setSignInPassword(e.target.value)}
                             required
                           />
                         </div>
@@ -189,6 +250,8 @@ const AuthPage = () => {
                             type="text"
                             placeholder="Your full name"
                             className="pl-10"
+                            value={signUpName}
+                            onChange={(e) => setSignUpName(e.target.value)}
                             required
                           />
                         </div>
@@ -202,6 +265,8 @@ const AuthPage = () => {
                             type="email"
                             placeholder="your@email.com"
                             className="pl-10"
+                            value={signUpEmail}
+                            onChange={(e) => setSignUpEmail(e.target.value)}
                             required
                           />
                         </div>
@@ -215,7 +280,10 @@ const AuthPage = () => {
                             type="password"
                             placeholder="••••••••"
                             className="pl-10"
+                            value={signUpPassword}
+                            onChange={(e) => setSignUpPassword(e.target.value)}
                             required
+                            minLength={6}
                           />
                         </div>
                       </div>

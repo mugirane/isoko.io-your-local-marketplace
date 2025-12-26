@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Store, MapPin, Phone, Mail, User, Package, ArrowRight, ArrowLeft, Check } from "lucide-react";
@@ -11,23 +11,37 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { CATEGORIES } from "@/lib/types";
+import { supabase } from "@/integrations/supabase/client";
 
 const CreateStorePage = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    // Step 1: Business Info
     businessName: "",
     ownerName: "",
     email: "",
     phone: "",
     whatsapp: "",
-    // Step 2: Store Details
     description: "",
     category: "",
     address: "",
-    // Step 3: Preview
   });
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUserId(session?.user?.id || null);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserId(session?.user?.id || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const updateFormData = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -61,12 +75,46 @@ const CreateStorePage = () => {
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = () => {
-    toast({
-      title: "Store Created! 🎉",
-      description: "Your store has been created successfully. Sign up to manage it.",
-    });
-    navigate("/auth");
+  const handleSubmit = async () => {
+    if (!userId) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to create a store.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    setIsLoading(true);
+
+    const { data, error } = await supabase.from("stores").insert({
+      owner_id: userId,
+      name: formData.businessName,
+      description: formData.description,
+      owner_name: formData.ownerName,
+      email: formData.email,
+      phone: formData.phone,
+      whatsapp: formData.whatsapp || formData.phone,
+      address: formData.address,
+      category: formData.category,
+    }).select().single();
+
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        title: "Error creating store",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Store Created! 🎉",
+        description: "Your store has been created successfully.",
+      });
+      navigate(`/store/${data.id}`);
+    }
   };
 
   const selectedCategory = CATEGORIES.find((c) => c.id === formData.category);
@@ -77,6 +125,23 @@ const CreateStorePage = () => {
       
       <main className="flex-1 bg-secondary/30 py-12">
         <div className="container max-w-3xl">
+          {/* Auth Notice */}
+          {!userId && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 rounded-lg bg-amber/10 border border-amber/30 p-4 text-center"
+            >
+              <p className="text-sm">
+                You'll need to{" "}
+                <a href="/auth" className="text-primary font-medium hover:underline">
+                  sign in or create an account
+                </a>{" "}
+                to save your store.
+              </p>
+            </motion.div>
+          )}
+
           {/* Progress Steps */}
           <div className="mb-8">
             <div className="flex items-center justify-center gap-4">
@@ -306,8 +371,13 @@ const CreateStorePage = () => {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
-              <Button variant="hero" onClick={handleSubmit} className="gap-2">
-                Create Store
+              <Button 
+                variant="hero" 
+                onClick={handleSubmit} 
+                className="gap-2"
+                disabled={isLoading}
+              >
+                {isLoading ? "Creating..." : "Create Store"}
                 <Check className="h-4 w-4" />
               </Button>
             )}
