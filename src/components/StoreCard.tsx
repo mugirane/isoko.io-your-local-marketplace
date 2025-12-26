@@ -24,7 +24,7 @@ const StoreCard = ({ store, index = 0 }: StoreCardProps) => {
           {/* Cover Image */}
           <div className="relative h-40 overflow-hidden">
             <img
-              src={store.coverImage}
+              src={store.cover_image || "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800"}
               alt={store.name}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
@@ -34,7 +34,7 @@ const StoreCard = ({ store, index = 0 }: StoreCardProps) => {
             <div className="absolute -bottom-6 left-4">
               <div className="h-14 w-14 overflow-hidden rounded-xl border-4 border-card bg-card shadow-md">
                 <img
-                  src={store.logo}
+                  src={store.logo || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200"}
                   alt={`${store.name} logo`}
                   className="h-full w-full object-cover"
                 />
@@ -59,11 +59,11 @@ const StoreCard = ({ store, index = 0 }: StoreCardProps) => {
             <div className="mt-4 flex items-center justify-between text-sm">
               <div className="flex items-center gap-1 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span className="truncate max-w-[120px]">{store.location.address}</span>
+                <span className="truncate max-w-[120px]">{store.address}</span>
               </div>
               <div className="flex items-center gap-1 text-primary font-medium">
                 <Users className="h-4 w-4" />
-                <span>{store.followers.toLocaleString()}</span>
+                <span>{(store.followers_count || 0).toLocaleString()}</span>
               </div>
             </div>
           </div>

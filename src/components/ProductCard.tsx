@@ -3,7 +3,7 @@ import { MessageCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Product, Store } from "@/lib/types";
+import { Product, Store, formatPrice } from "@/lib/types";
 
 interface ProductCardProps {
   product: Product;
@@ -19,7 +19,7 @@ const ProductCard = ({ product, store, index = 0 }: ProductCardProps) => {
     if (!store) return;
     
     const message = encodeURIComponent(
-      `Hi! I'm interested in ordering: ${product.name} (${product.currency} ${product.price}) from isoko.io`
+      `Hi! I'm interested in ordering: ${product.name} (${formatPrice(product.price, product.currency)}) from isoko.io`
     );
     window.open(`https://wa.me/${store.whatsapp.replace(/\+/g, '')}?text=${message}`, '_blank');
   };
@@ -34,11 +34,11 @@ const ProductCard = ({ product, store, index = 0 }: ProductCardProps) => {
         {/* Image */}
         <div className="relative aspect-square overflow-hidden bg-secondary">
           <img
-            src={product.images[0]}
+            src={product.images[0] || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400"}
             alt={product.name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          {!product.inStock && (
+          {!product.in_stock && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/80">
               <Badge variant="destructive">Out of Stock</Badge>
             </div>
@@ -57,14 +57,14 @@ const ProductCard = ({ product, store, index = 0 }: ProductCardProps) => {
           <div className="mt-auto pt-4">
             <div className="flex items-center justify-between">
               <span className="text-lg font-bold text-primary">
-                {product.currency} {product.price.toLocaleString()}
+                {formatPrice(product.price, product.currency)}
               </span>
               {store && (
                 <Button
                   variant="whatsapp"
                   size="sm"
                   onClick={handleWhatsAppOrder}
-                  disabled={!product.inStock}
+                  disabled={!product.in_stock}
                   className="gap-1"
                 >
                   <MessageCircle className="h-4 w-4" />
