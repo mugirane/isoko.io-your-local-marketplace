@@ -8,6 +8,7 @@ import StorePage from "./pages/StorePage";
 import StoresPage from "./pages/StoresPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import CreateStorePage from "./pages/CreateStorePage";
+import ProductDetailPage from "./pages/ProductDetailPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/categories/:categoryId" element={<CategoriesPage />} />
           <Route path="/create-store" element={<CreateStorePage />} />
+          <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

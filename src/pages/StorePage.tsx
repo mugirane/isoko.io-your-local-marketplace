@@ -7,18 +7,44 @@ import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MOCK_STORES, MOCK_PRODUCTS, CATEGORIES } from "@/lib/types";
+import { CATEGORIES } from "@/lib/types";
+import { useStore, useStoreProducts } from "@/hooks/useStores";
 import { toast } from "@/hooks/use-toast";
 
 const StorePage = () => {
   const { id } = useParams();
-  const store = MOCK_STORES.find((s) => s.id === id);
-  const storeProducts = MOCK_PRODUCTS.filter((p) => p.store_id === id);
+  const { data: store, isLoading: storeLoading } = useStore(id);
+  const { data: storeProducts = [], isLoading: productsLoading } = useStoreProducts(id);
   const category = CATEGORIES.find((c) => c.id === store?.category);
   
   const [isFollowing, setIsFollowing] = useState(false);
-  const [followerCount, setFollowerCount] = useState(store?.followers_count || 0);
+  const [followerCount, setFollowerCount] = useState(0);
+
+  // Update follower count when store data loads
+  if (store && followerCount === 0 && store.followers_count) {
+    setFollowerCount(store.followers_count);
+  }
+
+  if (storeLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1">
+          <div className="container py-4">
+            <Skeleton className="h-6 w-32" />
+          </div>
+          <Skeleton className="h-48 md:h-64 w-full" />
+          <div className="container py-8 space-y-4">
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-6 w-96" />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!store) {
     return (
@@ -176,7 +202,13 @@ const StorePage = () => {
             </TabsList>
 
             <TabsContent value="products">
-              {storeProducts.length > 0 ? (
+              {productsLoading ? (
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {[...Array(4)].map((_, i) => (
+                    <Skeleton key={i} className="aspect-square rounded-2xl" />
+                  ))}
+                </div>
+              ) : storeProducts.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                   {storeProducts.map((product, index) => (
                     <ProductCard key={product.id} product={product} store={store} index={index} />

@@ -4,13 +4,17 @@ import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
 import StoreCard from "@/components/StoreCard";
 import CategoryCard from "@/components/CategoryCard";
-import { MOCK_STORES, CATEGORIES } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CATEGORIES } from "@/lib/types";
+import { useStores } from "@/hooks/useStores";
 
 const Index = () => {
-  // Add counts to categories based on mock data
+  const { data: stores = [], isLoading } = useStores();
+
+  // Add counts to categories based on real data
   const categoriesWithCounts = CATEGORIES.map((cat) => ({
     ...cat,
-    count: MOCK_STORES.filter((s) => s.category === cat.id).length,
+    count: stores.filter((s) => s.category === cat.id).length,
   }));
 
   return (
@@ -61,11 +65,23 @@ const Index = () => {
               </div>
             </motion.div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {MOCK_STORES.map((store, index) => (
-                <StoreCard key={store.id} store={store} index={index} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-64 rounded-2xl" />
+                ))}
+              </div>
+            ) : stores.length > 0 ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {stores.slice(0, 8).map((store, index) => (
+                  <StoreCard key={store.id} store={store} index={index} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No stores yet. Be the first to create one!</p>
+              </div>
+            )}
           </div>
         </section>
 
