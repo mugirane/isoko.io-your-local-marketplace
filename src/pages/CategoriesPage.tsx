@@ -4,15 +4,18 @@ import { ArrowLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import StoreCard from "@/components/StoreCard";
-import { MOCK_STORES, CATEGORIES } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CATEGORIES } from "@/lib/types";
+import { useStores } from "@/hooks/useStores";
 
 const CategoriesPage = () => {
   const { categoryId } = useParams();
+  const { data: stores = [], isLoading } = useStores();
 
   // If category ID is provided, show stores in that category
   if (categoryId) {
     const category = CATEGORIES.find((c) => c.id === categoryId);
-    const categoryStores = MOCK_STORES.filter((s) => s.category === categoryId);
+    const categoryStores = stores.filter((s) => s.category === categoryId);
 
     return (
       <div className="min-h-screen flex flex-col">
@@ -38,7 +41,7 @@ const CategoriesPage = () => {
                 <span className="text-6xl mb-4 inline-block">{category?.icon}</span>
                 <h1 className="text-3xl font-bold md:text-4xl">{category?.name}</h1>
                 <p className="mt-2 text-muted-foreground">
-                  {categoryStores.length} store{categoryStores.length !== 1 ? "s" : ""} in this category
+                  {isLoading ? "Loading..." : `${categoryStores.length} store${categoryStores.length !== 1 ? "s" : ""} in this category`}
                 </p>
               </motion.div>
             </div>
@@ -47,7 +50,13 @@ const CategoriesPage = () => {
           {/* Stores Grid */}
           <section className="py-12">
             <div className="container">
-              {categoryStores.length > 0 ? (
+              {isLoading ? (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {[...Array(4)].map((_, i) => (
+                    <Skeleton key={i} className="h-64 rounded-2xl" />
+                  ))}
+                </div>
+              ) : categoryStores.length > 0 ? (
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {categoryStores.map((store, index) => (
                     <StoreCard key={store.id} store={store} index={index} />
@@ -70,7 +79,7 @@ const CategoriesPage = () => {
   // Show all categories
   const categoriesWithCounts = CATEGORIES.map((cat) => ({
     ...cat,
-    count: MOCK_STORES.filter((s) => s.category === cat.id).length,
+    count: stores.filter((s) => s.category === cat.id).length,
   }));
 
   return (
@@ -114,7 +123,7 @@ const CategoriesPage = () => {
                         {category.name}
                       </h3>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {category.count} store{category.count !== 1 ? "s" : ""}
+                        {isLoading ? "..." : `${category.count} store${category.count !== 1 ? "s" : ""}`}
                       </p>
                     </div>
                   </Link>

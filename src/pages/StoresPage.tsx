@@ -4,25 +4,27 @@ import { Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import StoreCard from "@/components/StoreCard";
-import CategoryCard from "@/components/CategoryCard";
 import { Input } from "@/components/ui/input";
-import { MOCK_STORES, CATEGORIES } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CATEGORIES } from "@/lib/types";
+import { useStores } from "@/hooks/useStores";
 
 const StoresPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { data: stores = [], isLoading } = useStores();
 
-  const filteredStores = MOCK_STORES.filter((store) => {
+  const filteredStores = stores.filter((store) => {
     const matchesSearch =
       store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      store.description.toLowerCase().includes(searchQuery.toLowerCase());
+      (store.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     const matchesCategory = !selectedCategory || store.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   const categoriesWithCounts = CATEGORIES.map((cat) => ({
     ...cat,
-    count: MOCK_STORES.filter((s) => s.category === cat.id).length,
+    count: stores.filter((s) => s.category === cat.id).length,
   }));
 
   return (
@@ -100,11 +102,17 @@ const StoresPage = () => {
         <section className="py-12">
           <div className="container">
             <p className="mb-6 text-muted-foreground">
-              Showing {filteredStores.length} store{filteredStores.length !== 1 ? "s" : ""}
+              {isLoading ? "Loading..." : `Showing ${filteredStores.length} store${filteredStores.length !== 1 ? "s" : ""}`}
               {selectedCategory && ` in ${CATEGORIES.find((c) => c.id === selectedCategory)?.name}`}
             </p>
 
-            {filteredStores.length > 0 ? (
+            {isLoading ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-64 rounded-2xl" />
+                ))}
+              </div>
+            ) : filteredStores.length > 0 ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredStores.map((store, index) => (
                   <StoreCard key={store.id} store={store} index={index} />
