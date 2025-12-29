@@ -70,7 +70,7 @@ const StoresPage = () => {
         {/* Categories Filter */}
         <section className="border-b py-6">
           <div className="container">
-            <div className="flex gap-3 overflow-x-auto pb-2">
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               <button
                 onClick={() => setSelectedCategory(null)}
                 className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
