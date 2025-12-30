@@ -28,6 +28,8 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES, formatPrice } from "@/lib/types";
 import type { Store as StoreType, Product, Profile } from "@/lib/types";
+import ImageUpload from "@/components/ImageUpload";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -67,6 +69,7 @@ const DashboardPage = () => {
     in_stock: true,
   });
   const [savingProduct, setSavingProduct] = useState(false);
+  const { uploadImage, uploading: imageUploading } = useImageUpload();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -165,6 +168,57 @@ const DashboardPage = () => {
       toast({ title: "Profile updated!" });
       setEditingProfile(false);
       fetchUserData();
+    }
+  };
+
+  const handleProfileImageUpload = async (file: File) => {
+    if (!userId || !profile) return;
+    
+    const url = await uploadImage(file, "avatars", userId);
+    if (url) {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ avatar_url: url })
+        .eq("user_id", userId);
+
+      if (!error) {
+        toast({ title: "Profile picture updated!" });
+        fetchUserData();
+      }
+    }
+  };
+
+  const handleStoreCoverUpload = async (file: File) => {
+    if (!store) return;
+    
+    const url = await uploadImage(file, "covers", store.id);
+    if (url) {
+      const { error } = await supabase
+        .from("stores")
+        .update({ cover_image: url })
+        .eq("id", store.id);
+
+      if (!error) {
+        toast({ title: "Cover image updated!" });
+        fetchUserData();
+      }
+    }
+  };
+
+  const handleStoreLogoUpload = async (file: File) => {
+    if (!store) return;
+    
+    const url = await uploadImage(file, "logos", store.id);
+    if (url) {
+      const { error } = await supabase
+        .from("stores")
+        .update({ logo: url })
+        .eq("id", store.id);
+
+      if (!error) {
+        toast({ title: "Store logo updated!" });
+        fetchUserData();
+      }
     }
   };
 
@@ -358,34 +412,46 @@ const DashboardPage = () => {
                     {editingProfile ? "Cancel" : "Edit"}
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Full Name</Label>
-                      {editingProfile ? (
-                        <Input
-                          value={profileForm.full_name}
-                          onChange={(e) => setProfileForm(prev => ({ ...prev, full_name: e.target.value }))}
-                        />
-                      ) : (
-                        <p className="text-foreground">{profile?.full_name || "Not set"}</p>
-                      )}
+                <CardContent className="space-y-6">
+                  {/* Profile Picture */}
+                  <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
+                    <div className="space-y-2 text-center">
+                      <Label>Profile Picture</Label>
+                      <ImageUpload
+                        currentImage={profile?.avatar_url}
+                        onUpload={handleProfileImageUpload}
+                        uploading={imageUploading}
+                        variant="avatar"
+                      />
                     </div>
-                    <div className="space-y-2">
-                      <Label>Email</Label>
-                      <p className="text-foreground">{profile?.email || "Not set"}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Phone</Label>
-                      {editingProfile ? (
-                        <Input
-                          value={profileForm.phone}
-                          onChange={(e) => setProfileForm(prev => ({ ...prev, phone: e.target.value }))}
-                          placeholder="+250..."
-                        />
-                      ) : (
-                        <p className="text-foreground">{profile?.phone || "Not set"}</p>
-                      )}
+                    <div className="flex-1 grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Full Name</Label>
+                        {editingProfile ? (
+                          <Input
+                            value={profileForm.full_name}
+                            onChange={(e) => setProfileForm(prev => ({ ...prev, full_name: e.target.value }))}
+                          />
+                        ) : (
+                          <p className="text-foreground">{profile?.full_name || "Not set"}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Email</Label>
+                        <p className="text-foreground">{profile?.email || "Not set"}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Phone</Label>
+                        {editingProfile ? (
+                          <Input
+                            value={profileForm.phone}
+                            onChange={(e) => setProfileForm(prev => ({ ...prev, phone: e.target.value }))}
+                            placeholder="+250..."
+                          />
+                        ) : (
+                          <p className="text-foreground">{profile?.phone || "Not set"}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {editingProfile && (
@@ -416,38 +482,59 @@ const DashboardPage = () => {
                       {editingStore ? "Cancel" : "Edit"}
                     </Button>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
+                  <CardContent className="space-y-6">
+                    {/* Store Images */}
+                    <div className="space-y-4">
+                      <Label>Store Cover Image</Label>
+                      <ImageUpload
+                        currentImage={store.cover_image}
+                        onUpload={handleStoreCoverUpload}
+                        uploading={imageUploading}
+                        variant="cover"
+                      />
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-6">
                       <div className="space-y-2">
-                        <Label>Store Name</Label>
-                        {editingStore ? (
-                          <Input
-                            value={storeForm.name}
-                            onChange={(e) => setStoreForm(prev => ({ ...prev, name: e.target.value }))}
-                          />
-                        ) : (
-                          <p className="text-foreground">{store.name}</p>
-                        )}
+                        <Label>Store Logo</Label>
+                        <ImageUpload
+                          currentImage={store.logo}
+                          onUpload={handleStoreLogoUpload}
+                          uploading={imageUploading}
+                          variant="logo"
+                        />
                       </div>
-                      <div className="space-y-2">
-                        <Label>Category</Label>
-                        {editingStore ? (
-                          <select
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={storeForm.category}
-                            onChange={(e) => setStoreForm(prev => ({ ...prev, category: e.target.value }))}
-                          >
-                            {CATEGORIES.map(cat => (
-                              <option key={cat.id} value={cat.id}>
-                                {cat.icon} {cat.name}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <p className="text-foreground">
-                            {CATEGORIES.find(c => c.id === store.category)?.name || store.category}
-                          </p>
-                        )}
+                      <div className="flex-1 grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label>Store Name</Label>
+                          {editingStore ? (
+                            <Input
+                              value={storeForm.name}
+                              onChange={(e) => setStoreForm(prev => ({ ...prev, name: e.target.value }))}
+                            />
+                          ) : (
+                            <p className="text-foreground">{store.name}</p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Category</Label>
+                          {editingStore ? (
+                            <select
+                              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                              value={storeForm.category}
+                              onChange={(e) => setStoreForm(prev => ({ ...prev, category: e.target.value }))}
+                            >
+                              {CATEGORIES.map(cat => (
+                                <option key={cat.id} value={cat.id}>
+                                  {cat.icon} {cat.name}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p className="text-foreground">
+                              {CATEGORIES.find(c => c.id === store.category)?.name || store.category}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="space-y-2">
