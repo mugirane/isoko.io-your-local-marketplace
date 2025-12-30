@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Users, MessageCircle, Heart, Share2, ArrowLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
+import QuickFollowDialog from "@/components/QuickFollowDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,20 +13,67 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CATEGORIES } from "@/lib/types";
 import { useStore, useStoreProducts } from "@/hooks/useStores";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const StorePage = () => {
   const { id } = useParams();
-  const { data: store, isLoading: storeLoading } = useStore(id);
+  const { data: store, isLoading: storeLoading, refetch: refetchStore } = useStore(id);
   const { data: storeProducts = [], isLoading: productsLoading } = useStoreProducts(id);
   const category = CATEGORIES.find((c) => c.id === store?.category);
   
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [showQuickFollow, setShowQuickFollow] = useState(false);
+  const [checkingFollow, setCheckingFollow] = useState(true);
 
-  // Update follower count when store data loads
-  if (store && followerCount === 0 && store.followers_count) {
-    setFollowerCount(store.followers_count);
-  }
+  // Check auth status
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUserId(session?.user?.id || null);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserId(session?.user?.id || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Check if user is following and get follower count
+  useEffect(() => {
+    if (!id) return;
+
+    const checkFollowStatus = async () => {
+      setCheckingFollow(true);
+      
+      // Get follower count
+      const { count } = await supabase
+        .from("store_followers")
+        .select("*", { count: "exact", head: true })
+        .eq("store_id", id);
+      
+      setFollowerCount(count || 0);
+
+      // Check if current user is following
+      if (userId) {
+        const { data } = await supabase
+          .from("store_followers")
+          .select("id")
+          .eq("store_id", id)
+          .eq("user_id", userId)
+          .maybeSingle();
+        
+        setIsFollowing(!!data);
+      }
+      
+      setCheckingFollow(false);
+    };
+
+    checkFollowStatus();
+  }, [id, userId]);
 
   if (storeLoading) {
     return (
@@ -63,15 +111,70 @@ const StorePage = () => {
     );
   }
 
-  const handleFollow = () => {
-    setIsFollowing(!isFollowing);
-    setFollowerCount((prev) => (isFollowing ? prev - 1 : prev + 1));
-    toast({
-      title: isFollowing ? "Unfollowed" : "Following!",
-      description: isFollowing 
-        ? `You unfollowed ${store.name}` 
-        : `You are now following ${store.name}`,
-    });
+  const handleFollow = async () => {
+    // If not logged in, show quick follow dialog
+    if (!userId) {
+      setShowQuickFollow(true);
+      return;
+    }
+
+    // If already following, unfollow
+    if (isFollowing) {
+      const { error } = await supabase
+        .from("store_followers")
+        .delete()
+        .eq("store_id", store.id)
+        .eq("user_id", userId);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsFollowing(false);
+      setFollowerCount((prev) => prev - 1);
+      toast({
+        title: "Unfollowed",
+        description: `You unfollowed ${store.name}`,
+      });
+    } else {
+      // Follow the store
+      const { error } = await supabase
+        .from("store_followers")
+        .insert({
+          store_id: store.id,
+          user_id: userId,
+        });
+
+      if (error) {
+        if (error.message.includes("duplicate")) {
+          setIsFollowing(true);
+          return;
+        }
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsFollowing(true);
+      setFollowerCount((prev) => prev + 1);
+      toast({
+        title: "Following!",
+        description: `You are now following ${store.name}`,
+      });
+    }
+  };
+
+  const handleFollowSuccess = () => {
+    setIsFollowing(true);
+    setFollowerCount((prev) => prev + 1);
   };
 
   const handleShare = () => {
@@ -142,7 +245,7 @@ const StorePage = () => {
               <div className="flex-1 pb-6">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <h1 className="text-2xl md:text-3xl font-bold">{store.name}</h1>
                       <Badge className="bg-primary/10 text-primary hover:bg-primary/20">
                         {category?.icon} {category?.name}
@@ -169,10 +272,11 @@ const StorePage = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 flex-wrap">
                     <Button
                       variant={isFollowing ? "secondary" : "default"}
                       onClick={handleFollow}
+                      disabled={checkingFollow}
                       className="gap-2"
                     >
                       <Heart className={`h-4 w-4 ${isFollowing ? "fill-current" : ""}`} />
@@ -264,6 +368,15 @@ const StorePage = () => {
       </main>
 
       <Footer />
+
+      {/* Quick Follow Dialog */}
+      <QuickFollowDialog
+        open={showQuickFollow}
+        onOpenChange={setShowQuickFollow}
+        storeId={store.id}
+        storeName={store.name}
+        onFollowSuccess={handleFollowSuccess}
+      />
     </div>
   );
 };
