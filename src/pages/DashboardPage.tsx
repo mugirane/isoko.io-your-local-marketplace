@@ -65,10 +65,11 @@ const DashboardPage = () => {
     description: "",
     price: "",
     category: "",
-    images: [""],
+    images: [] as string[],
     in_stock: true,
   });
   const [savingProduct, setSavingProduct] = useState(false);
+  const [uploadingProductImage, setUploadingProductImage] = useState(false);
   const { uploadImage, uploading: imageUploading } = useImageUpload();
 
   useEffect(() => {
@@ -255,7 +256,7 @@ const DashboardPage = () => {
         description: product.description || "",
         price: product.price.toString(),
         category: product.category || "",
-        images: product.images.length > 0 ? product.images : [""],
+        images: product.images || [],
         in_stock: product.in_stock,
       });
     } else {
@@ -265,11 +266,42 @@ const DashboardPage = () => {
         description: "",
         price: "",
         category: "",
-        images: [""],
+        images: [],
         in_stock: true,
       });
     }
     setShowProductDialog(true);
+  };
+
+  const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!store || !e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Error", description: "File size must be less than 5MB", variant: "destructive" });
+      return;
+    }
+
+    setUploadingProductImage(true);
+    const url = await uploadImage(file, "products", store.id);
+    if (url) {
+      setProductForm(prev => ({
+        ...prev,
+        images: [...prev.images, url],
+      }));
+      toast({ title: "Image uploaded!" });
+    }
+    setUploadingProductImage(false);
+    
+    // Reset input
+    e.target.value = "";
+  };
+
+  const removeProductImage = (index: number) => {
+    setProductForm(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSaveProduct = async () => {
@@ -323,27 +355,6 @@ const DashboardPage = () => {
       toast({ title: "Product deleted!" });
       fetchUserData();
     }
-  };
-
-  const addImageField = () => {
-    setProductForm(prev => ({
-      ...prev,
-      images: [...prev.images, ""],
-    }));
-  };
-
-  const updateImage = (index: number, value: string) => {
-    setProductForm(prev => ({
-      ...prev,
-      images: prev.images.map((img, i) => i === index ? value : img),
-    }));
-  };
-
-  const removeImage = (index: number) => {
-    setProductForm(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
   };
 
   if (isLoading) {
@@ -688,45 +699,63 @@ const DashboardPage = () => {
                             />
                             <Label htmlFor="in_stock" className="cursor-pointer">In Stock</Label>
                           </div>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label>Product Images (URLs)</Label>
-                              <Button 
-                                type="button" 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={addImageField}
-                                className="gap-1"
-                              >
-                                <ImagePlus className="h-3 w-3" />
-                                Add
-                              </Button>
-                            </div>
-                            <div className="space-y-2">
-                              {productForm.images.map((img, index) => (
-                                <div key={index} className="flex gap-2">
-                                  <Input
-                                    value={img}
-                                    onChange={(e) => updateImage(index, e.target.value)}
-                                    placeholder="https://example.com/image.jpg"
-                                    className="flex-1"
-                                  />
-                                  {productForm.images.length > 1 && (
+                          <div className="space-y-3">
+                            <Label>Product Images</Label>
+                            
+                            {/* Image preview grid */}
+                            {productForm.images.length > 0 && (
+                              <div className="grid grid-cols-3 gap-2">
+                                {productForm.images.map((img, index) => (
+                                  <div key={index} className="relative group aspect-square rounded-lg overflow-hidden border bg-secondary">
+                                    <img
+                                      src={img}
+                                      alt={`Product ${index + 1}`}
+                                      className="w-full h-full object-cover"
+                                    />
                                     <Button
                                       type="button"
-                                      variant="ghost"
+                                      variant="destructive"
                                       size="icon"
-                                      onClick={() => removeImage(index)}
-                                      className="shrink-0"
+                                      onClick={() => removeProductImage(index)}
+                                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
-                                      <X className="h-4 w-4" />
+                                      <X className="h-3 w-3" />
                                     </Button>
-                                  )}
-                                </div>
-                              ))}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {/* Upload button */}
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleProductImageUpload}
+                                className="hidden"
+                                id="product-image-upload"
+                                disabled={uploadingProductImage}
+                              />
+                              <label
+                                htmlFor="product-image-upload"
+                                className={`inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 cursor-pointer ${uploadingProductImage ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                {uploadingProductImage ? (
+                                  <>
+                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                    Uploading...
+                                  </>
+                                ) : (
+                                  <>
+                                    <ImagePlus className="h-4 w-4" />
+                                    Add Image
+                                  </>
+                                )}
+                              </label>
                             </div>
+                            
                             <p className="text-xs text-muted-foreground">
-                              Add multiple image URLs for a product gallery
+                              Upload images from your device (max 5MB each)
                             </p>
                           </div>
                         </div>
