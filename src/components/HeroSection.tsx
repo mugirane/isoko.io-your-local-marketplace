@@ -1,9 +1,15 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Store, ShoppingBag, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+
+  const handleSecretDot = () => {
+    navigate("/admin-portal");
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-secondary py-16 md:py-24">
       {/* Background decoration */}
@@ -31,7 +37,14 @@ const HeroSection = () => {
             
             <p className="max-w-lg text-lg text-muted-foreground">
               Discover amazing stores in your area. Browse products, follow your favorite shops, 
-              and order directly via WhatsApp. Supporting local businesses has never been easier.
+              and order directly via WhatsApp. Supporting local businesses has never been easier
+              <button
+                onClick={handleSecretDot}
+                className="text-muted-foreground hover:text-primary transition-colors cursor-pointer ml-0.5"
+                aria-label="Admin access"
+              >
+                .
+              </button>
             </p>
             
             <div className="flex flex-col gap-4 sm:flex-row">

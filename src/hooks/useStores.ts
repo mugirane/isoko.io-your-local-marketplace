@@ -6,14 +6,30 @@ export const useStores = () => {
   return useQuery({
     queryKey: ["stores"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: stores, error } = await supabase
         .from("stores")
         .select("*")
         .eq("is_active", true)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Store[];
+
+      // Fetch follower counts for each store
+      const storesWithFollowers = await Promise.all(
+        (stores || []).map(async (store) => {
+          const { count } = await supabase
+            .from("store_followers")
+            .select("*", { count: "exact", head: true })
+            .eq("store_id", store.id);
+
+          return {
+            ...store,
+            followers_count: count || 0,
+          } as Store;
+        })
+      );
+
+      return storesWithFollowers;
     },
   });
 };
