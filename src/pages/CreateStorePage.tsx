@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Store, MapPin, Phone, Mail, User, Package, ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { Store, MapPin, Phone, Mail, User, Package, ArrowRight, ArrowLeft, Check, AlertCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
 import { CATEGORIES } from "@/lib/types";
 import { supabase } from "@/integrations/supabase/client";
+import PhoneInput from "@/components/PhoneInput";
 
 const CreateStorePage = () => {
   const navigate = useNavigate();
@@ -125,6 +127,14 @@ const CreateStorePage = () => {
       
       <main className="flex-1 bg-secondary/30 py-12">
         <div className="container max-w-3xl">
+          {/* Payment Notice */}
+          <Alert className="mb-6 border-primary/20 bg-primary/5">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Monthly Subscription:</strong> 8,000 RWF/month. Payment via MoMo code: <strong>1794847</strong>
+            </AlertDescription>
+          </Alert>
+
           {/* Auth Notice */}
           {!userId && (
             <motion.div
@@ -221,20 +231,19 @@ const CreateStorePage = () => {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="phone">Phone Number *</Label>
-                      <Input
+                      <PhoneInput
                         id="phone"
-                        placeholder="+250..."
                         value={formData.phone}
-                        onChange={(e) => updateFormData("phone", e.target.value)}
+                        onChange={(value) => updateFormData("phone", value)}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="whatsapp">WhatsApp Number</Label>
-                      <Input
+                      <PhoneInput
                         id="whatsapp"
-                        placeholder="Same as phone if empty"
                         value={formData.whatsapp}
-                        onChange={(e) => updateFormData("whatsapp", e.target.value)}
+                        onChange={(value) => updateFormData("whatsapp", value)}
+                        placeholder="Same as phone if empty"
                       />
                     </div>
                   </div>

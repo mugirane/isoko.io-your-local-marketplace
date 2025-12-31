@@ -14,6 +14,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_chats: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          sender_type: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          sender_type: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          sender_type?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_chats_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_notes: {
+        Row: {
+          created_at: string
+          id: string
+          note: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notes_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category: string | null
@@ -23,8 +90,10 @@ export type Database = {
           id: string
           images: string[] | null
           in_stock: boolean
+          is_hidden: boolean
           name: string
           price: number
+          store_category_id: string | null
           store_id: string
           updated_at: string
         }
@@ -36,8 +105,10 @@ export type Database = {
           id?: string
           images?: string[] | null
           in_stock?: boolean
+          is_hidden?: boolean
           name: string
           price?: number
+          store_category_id?: string | null
           store_id: string
           updated_at?: string
         }
@@ -49,12 +120,21 @@ export type Database = {
           id?: string
           images?: string[] | null
           in_stock?: boolean
+          is_hidden?: boolean
           name?: string
           price?: number
+          store_category_id?: string | null
           store_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "products_store_category_id_fkey"
+            columns: ["store_category_id"]
+            isOneToOne: false
+            referencedRelation: "store_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_store_id_fkey"
             columns: ["store_id"]
@@ -97,6 +177,35 @@ export type Database = {
         }
         Relationships: []
       }
+      store_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_categories_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_followers: {
         Row: {
           created_at: string
@@ -126,6 +235,44 @@ export type Database = {
           },
         ]
       }
+      store_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string
+          id: string
+          is_paid: boolean
+          paid_at: string | null
+          store_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          due_date: string
+          id?: string
+          is_paid?: boolean
+          paid_at?: string | null
+          store_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          is_paid?: boolean
+          paid_at?: string | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_payments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           address: string
@@ -136,6 +283,7 @@ export type Database = {
           email: string
           id: string
           is_active: boolean
+          is_visible: boolean
           latitude: number | null
           logo: string | null
           longitude: number | null
@@ -155,6 +303,7 @@ export type Database = {
           email: string
           id?: string
           is_active?: boolean
+          is_visible?: boolean
           latitude?: number | null
           logo?: string | null
           longitude?: number | null
@@ -174,6 +323,7 @@ export type Database = {
           email?: string
           id?: string
           is_active?: boolean
+          is_visible?: boolean
           latitude?: number | null
           logo?: string | null
           longitude?: number | null

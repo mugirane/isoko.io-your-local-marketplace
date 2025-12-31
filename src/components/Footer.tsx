@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ShoppingBag, Facebook, Twitter, Instagram, Mail } from "lucide-react";
+import { ShoppingBag, Mail } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -17,17 +17,6 @@ const Footer = () => {
             <p className="text-sm text-primary-foreground/70">
               Discover local stores and products. Connect directly with business owners via WhatsApp.
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="text-primary-foreground/70 hover:text-primary transition-colors">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-primary-foreground/70 hover:text-primary transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-primary-foreground/70 hover:text-primary transition-colors">
-                <Instagram className="h-5 w-5" />
-              </a>
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -37,6 +26,11 @@ const Footer = () => {
               <li>
                 <Link to="/stores" className="text-sm text-primary-foreground/70 hover:text-primary transition-colors">
                   Browse Stores
+                </Link>
+              </li>
+              <li>
+                <Link to="/products" className="text-sm text-primary-foreground/70 hover:text-primary transition-colors">
+                  Browse Products
                 </Link>
               </li>
               <li>
@@ -85,7 +79,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li className="flex items-center gap-2 text-sm text-primary-foreground/70">
                 <Mail className="h-4 w-4" />
-                support@isoko.io
+                kigaliyoungcoders@gmail.com
               </li>
             </ul>
           </div>
