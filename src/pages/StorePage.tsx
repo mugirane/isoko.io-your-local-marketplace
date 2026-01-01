@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Users, MessageCircle, Heart, Share2, ArrowLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -26,6 +27,29 @@ const StorePage = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [showQuickFollow, setShowQuickFollow] = useState(false);
   const [checkingFollow, setCheckingFollow] = useState(true);
+  const [selectedStoreCategory, setSelectedStoreCategory] = useState<string>("all");
+
+  // Fetch store categories
+  const { data: storeCategories = [] } = useQuery({
+    queryKey: ["store-categories", id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from("store_categories")
+        .select("*")
+        .eq("store_id", id)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  // Filter products by selected store category
+  const filteredProducts = useMemo(() => {
+    if (selectedStoreCategory === "all") return storeProducts;
+    return storeProducts.filter(p => p.store_category_id === selectedStoreCategory);
+  }, [storeProducts, selectedStoreCategory]);
 
   // Check auth status
   useEffect(() => {
@@ -306,21 +330,51 @@ const StorePage = () => {
             </TabsList>
 
             <TabsContent value="products">
+              {/* Store Category Filters */}
+              {storeCategories.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  <Button
+                    variant={selectedStoreCategory === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedStoreCategory("all")}
+                  >
+                    All ({storeProducts.length})
+                  </Button>
+                  {storeCategories.map((cat) => {
+                    const count = storeProducts.filter(p => p.store_category_id === cat.id).length;
+                    return (
+                      <Button
+                        key={cat.id}
+                        variant={selectedStoreCategory === cat.id ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedStoreCategory(cat.id)}
+                      >
+                        {cat.name} ({count})
+                      </Button>
+                    );
+                  })}
+                </div>
+              )}
+
               {productsLoading ? (
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                   {[...Array(4)].map((_, i) => (
                     <Skeleton key={i} className="aspect-square rounded-2xl" />
                   ))}
                 </div>
-              ) : storeProducts.length > 0 ? (
+              ) : filteredProducts.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                  {storeProducts.map((product, index) => (
+                  {filteredProducts.map((product, index) => (
                     <ProductCard key={product.id} product={product} store={store} index={index} />
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground">No products available yet.</p>
+                  <p className="text-muted-foreground">
+                    {selectedStoreCategory === "all" 
+                      ? "No products available yet." 
+                      : "No products in this category."}
+                  </p>
                 </div>
               )}
             </TabsContent>
