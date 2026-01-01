@@ -840,14 +840,14 @@ const DashboardPage = () => {
                             <div className="space-y-2">
                               <Label>Store Category</Label>
                               <Select
-                                value={productForm.store_category_id}
-                                onValueChange={(value) => setProductForm(prev => ({ ...prev, store_category_id: value }))}
+                                value={productForm.store_category_id || "none"}
+                                onValueChange={(value) => setProductForm(prev => ({ ...prev, store_category_id: value === "none" ? "" : value }))}
                               >
                                 <SelectTrigger className="bg-background">
                                   <SelectValue placeholder="Select your store category" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="">None</SelectItem>
+                                  <SelectItem value="none">None</SelectItem>
                                   {storeCategories.map(cat => (
                                     <SelectItem key={cat.id} value={cat.id}>
                                       {cat.name}
