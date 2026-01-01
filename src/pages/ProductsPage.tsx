@@ -31,6 +31,7 @@ const ProductsPage = () => {
           store:stores(*)
         `)
         .eq("in_stock", true)
+        .eq("is_hidden", false)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

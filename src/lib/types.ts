@@ -14,6 +14,7 @@ export interface Store {
   cover_image: string | null;
   logo: string | null;
   is_active: boolean;
+  is_visible: boolean;
   created_at: string;
   updated_at: string;
   followers_count?: number;
@@ -28,8 +29,10 @@ export interface Product {
   price: number;
   currency: string;
   category: string | null;
+  store_category_id: string | null;
   images: string[];
   in_stock: boolean;
+  is_hidden: boolean;
   created_at: string;
   updated_at: string;
 }
