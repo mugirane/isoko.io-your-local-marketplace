@@ -357,13 +357,13 @@ const StorePage = () => {
               )}
 
               {productsLoading ? (
-                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
                   {[...Array(4)].map((_, i) => (
                     <Skeleton key={i} className="aspect-square rounded-2xl" />
                   ))}
                 </div>
               ) : filteredProducts.length > 0 ? (
-                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
                   {filteredProducts.map((product, index) => (
                     <ProductCard key={product.id} product={product} store={store} index={index} />
                   ))}

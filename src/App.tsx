@@ -34,6 +34,7 @@ const App = () => (
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/admin-portal" element={<AdminPortal />} />
+          <Route path="/admin" element={<AdminPortal />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

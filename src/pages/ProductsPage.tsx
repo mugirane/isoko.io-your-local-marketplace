@@ -80,12 +80,13 @@ const ProductsPage = () => {
             </div>
           </div>
 
-          {/* Category Filters */}
-          <div className="mb-6 flex flex-wrap gap-2">
+          {/* Category Filters - vertical on mobile, horizontal on desktop */}
+          <div className="mb-6 flex flex-col gap-2 md:flex-row md:flex-wrap">
             <Button
               variant={selectedCategory === null ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedCategory(null)}
+              className="justify-start md:justify-center"
             >
               All Products
             </Button>
@@ -95,21 +96,22 @@ const ProductsPage = () => {
                 variant={selectedCategory === category.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(category.id)}
+                className="justify-start md:justify-center"
               >
                 {category.icon} {category.name}
               </Button>
             ))}
           </div>
 
-          {/* Products Grid */}
+          {/* Products Grid - 2 columns on mobile */}
           {isLoading ? (
-            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
               {[...Array(8)].map((_, i) => (
-                <Skeleton key={i} className="h-72 rounded-xl" />
+                <Skeleton key={i} className="h-48 sm:h-72 rounded-xl" />
               ))}
             </div>
           ) : filteredProducts && filteredProducts.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
               {filteredProducts.map((product) => (
                 <Card key={product.id} variant="product" className="overflow-hidden">
                   <Link to={`/product/${product.id}`}>
