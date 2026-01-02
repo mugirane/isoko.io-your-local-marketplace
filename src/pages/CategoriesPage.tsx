@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import StoreCard from "@/components/StoreCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CATEGORIES } from "@/lib/types";
@@ -72,6 +73,7 @@ const CategoriesPage = () => {
         </main>
 
         <Footer />
+        <MobileBottomNav />
       </div>
     );
   }
@@ -106,7 +108,7 @@ const CategoriesPage = () => {
         {/* Categories Grid */}
         <section className="py-12">
           <div className="container">
-            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {categoriesWithCounts.map((category, index) => (
                 <motion.div
                   key={category.id}
@@ -115,15 +117,15 @@ const CategoriesPage = () => {
                   transition={{ delay: index * 0.05 }}
                 >
                   <Link to={`/categories/${category.id}`}>
-                    <div className="group rounded-2xl border bg-card p-6 text-center shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer">
-                      <span className="text-5xl mb-4 inline-block group-hover:scale-110 transition-transform duration-300">
+                    <div className="group rounded-xl border bg-card p-3 sm:p-4 text-center shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer">
+                      <span className="text-3xl sm:text-4xl mb-2 inline-block group-hover:scale-110 transition-transform duration-300">
                         {category.icon}
                       </span>
-                      <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                      <h3 className="font-medium text-sm sm:text-base group-hover:text-primary transition-colors line-clamp-1">
                         {category.name}
                       </h3>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {isLoading ? "..." : `${category.count} store${category.count !== 1 ? "s" : ""}`}
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {isLoading ? "..." : `${category.count}`}
                       </p>
                     </div>
                   </Link>
@@ -135,6 +137,7 @@ const CategoriesPage = () => {
       </main>
 
       <Footer />
+      <MobileBottomNav />
     </div>
   );
 };

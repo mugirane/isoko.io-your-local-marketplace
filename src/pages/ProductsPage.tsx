@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Search, Store, ShoppingBag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -80,15 +81,15 @@ const ProductsPage = () => {
             </div>
           </div>
 
-          {/* Category Filters - vertical on mobile, horizontal on desktop */}
-          <div className="mb-6 flex flex-col gap-2 md:flex-row md:flex-wrap">
+          {/* Category Filters - horizontal scrollable on mobile */}
+          <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             <Button
               variant={selectedCategory === null ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedCategory(null)}
-              className="justify-start md:justify-center"
+              className="shrink-0"
             >
-              All Products
+              All
             </Button>
             {CATEGORIES.map((category) => (
               <Button
@@ -96,7 +97,7 @@ const ProductsPage = () => {
                 variant={selectedCategory === category.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(category.id)}
-                className="justify-start md:justify-center"
+                className="shrink-0"
               >
                 {category.icon} {category.name}
               </Button>
@@ -181,6 +182,7 @@ const ProductsPage = () => {
       </main>
 
       <Footer />
+      <MobileBottomNav />
     </div>
   );
 };
