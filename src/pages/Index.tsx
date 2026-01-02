@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
 import StoreCard from "@/components/StoreCard";
 import CategoryCard from "@/components/CategoryCard";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CATEGORIES } from "@/lib/types";
 import { useStores } from "@/hooks/useStores";
@@ -172,6 +173,7 @@ const Index = () => {
       </main>
 
       <Footer />
+      <MobileBottomNav />
     </div>
   );
 };
