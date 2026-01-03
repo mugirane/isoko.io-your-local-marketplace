@@ -43,6 +43,11 @@ const Footer = () => {
                   Open Your Store
                 </Link>
               </li>
+              <li>
+                <Link to="/affiliate" className="text-sm text-primary-foreground/70 hover:text-primary transition-colors">
+                  Become an Affiliate
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Store, MapPin, Phone, Mail, User, Package, ArrowRight, ArrowLeft, Check, AlertCircle } from "lucide-react";
+import { Store, MapPin, Phone, Mail, User, Package, ArrowRight, ArrowLeft, Check, AlertCircle, Gift } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ const CreateStorePage = () => {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [promoCodeValid, setPromoCodeValid] = useState<boolean | null>(null);
+  const [affiliateId, setAffiliateId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     businessName: "",
     ownerName: "",
@@ -29,6 +31,7 @@ const CreateStorePage = () => {
     description: "",
     category: "",
     address: "",
+    promoCode: "",
   });
 
   useEffect(() => {
@@ -47,6 +50,37 @@ const CreateStorePage = () => {
 
   const updateFormData = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    
+    // Reset promo code validation when changed
+    if (field === "promoCode") {
+      setPromoCodeValid(null);
+      setAffiliateId(null);
+    }
+  };
+
+  const validatePromoCode = async () => {
+    if (!formData.promoCode.trim()) {
+      setPromoCodeValid(null);
+      setAffiliateId(null);
+      return;
+    }
+
+    const { data } = await supabase
+      .from("affiliates")
+      .select("id")
+      .eq("promo_code", formData.promoCode.trim().toUpperCase())
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (data) {
+      setPromoCodeValid(true);
+      setAffiliateId(data.id);
+      toast({ title: "Promo code valid! ✓" });
+    } else {
+      setPromoCodeValid(false);
+      setAffiliateId(null);
+      toast({ title: "Invalid promo code", variant: "destructive" });
+    }
   };
 
   const handleNext = () => {
@@ -90,7 +124,7 @@ const CreateStorePage = () => {
 
     setIsLoading(true);
 
-    const { data, error } = await supabase.from("stores").insert({
+    const storeData: any = {
       owner_id: userId,
       name: formData.businessName,
       description: formData.description,
@@ -100,7 +134,18 @@ const CreateStorePage = () => {
       whatsapp: formData.whatsapp || formData.phone,
       address: formData.address,
       category: formData.category,
-    }).select().single();
+    };
+
+    // Add affiliate reference if promo code is valid
+    if (affiliateId) {
+      storeData.referred_by_affiliate_id = affiliateId;
+    }
+
+    const { data, error } = await supabase
+      .from("stores")
+      .insert(storeData)
+      .select()
+      .single();
 
     setIsLoading(false);
 
@@ -125,7 +170,7 @@ const CreateStorePage = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-1 bg-secondary/30 py-12">
+      <main className="flex-1 bg-secondary/30 py-12 pb-24 md:pb-12">
         <div className="container max-w-3xl">
           {/* Payment Notice */}
           <Alert className="mb-6 border-primary/20 bg-primary/5">
@@ -247,6 +292,34 @@ const CreateStorePage = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Promo Code Field */}
+                  <div className="space-y-2">
+                    <Label htmlFor="promoCode" className="flex items-center gap-2">
+                      <Gift className="h-4 w-4 text-primary" />
+                      Promo Code (Optional)
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="promoCode"
+                        placeholder="Enter affiliate promo code"
+                        value={formData.promoCode}
+                        onChange={(e) => updateFormData("promoCode", e.target.value.toUpperCase())}
+                        className={promoCodeValid === true ? "border-green-500" : promoCodeValid === false ? "border-red-500" : ""}
+                      />
+                      <Button type="button" variant="outline" onClick={validatePromoCode}>
+                        Validate
+                      </Button>
+                    </div>
+                    {promoCodeValid === true && (
+                      <p className="text-sm text-green-600 flex items-center gap-1">
+                        <Check className="h-4 w-4" /> Valid promo code applied!
+                      </p>
+                    )}
+                    {promoCodeValid === false && (
+                      <p className="text-sm text-red-600">Invalid or expired promo code</p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -355,6 +428,12 @@ const CreateStorePage = () => {
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         {formData.address}
                       </p>
+                      {affiliateId && (
+                        <p className="flex items-center gap-2 text-green-600">
+                          <Gift className="h-4 w-4" />
+                          Referred by affiliate: {formData.promoCode}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </CardContent>

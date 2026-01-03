@@ -3,7 +3,6 @@ import { useParams, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import MobileBottomNav from "@/components/MobileBottomNav";
 import StoreCard from "@/components/StoreCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CATEGORIES } from "@/lib/types";
@@ -22,7 +21,7 @@ const CategoriesPage = () => {
       <div className="min-h-screen flex flex-col">
         <Navbar />
         
-        <main className="flex-1">
+        <main className="flex-1 pb-20 md:pb-0">
           {/* Back Button */}
           <div className="container py-4">
             <Link to="/categories" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -73,7 +72,6 @@ const CategoriesPage = () => {
         </main>
 
         <Footer />
-        <MobileBottomNav />
       </div>
     );
   }
@@ -88,7 +86,7 @@ const CategoriesPage = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-1">
+      <main className="flex-1 pb-20 md:pb-0">
         {/* Header */}
         <section className="bg-secondary/50 py-12">
           <div className="container">
@@ -137,7 +135,6 @@ const CategoriesPage = () => {
       </main>
 
       <Footer />
-      <MobileBottomNav />
     </div>
   );
 };

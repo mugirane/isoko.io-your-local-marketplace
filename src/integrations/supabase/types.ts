@@ -81,6 +81,100 @@ export type Database = {
           },
         ]
       }
+      affiliate_earnings: {
+        Row: {
+          affiliate_id: string
+          amount: number
+          created_at: string
+          id: string
+          is_paid: boolean
+          paid_at: string | null
+          payment_id: string
+          store_id: string
+        }
+        Insert: {
+          affiliate_id: string
+          amount: number
+          created_at?: string
+          id?: string
+          is_paid?: boolean
+          paid_at?: string | null
+          payment_id: string
+          store_id: string
+        }
+        Update: {
+          affiliate_id?: string
+          amount?: number
+          created_at?: string
+          id?: string
+          is_paid?: boolean
+          paid_at?: string | null
+          payment_id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_earnings_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_earnings_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "store_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_earnings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliates: {
+        Row: {
+          commission_rate: number
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          phone: string
+          promo_code: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          commission_rate?: number
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          phone: string
+          promo_code: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          phone?: string
+          promo_code?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string | null
@@ -291,6 +385,7 @@ export type Database = {
           owner_id: string
           owner_name: string
           phone: string
+          referred_by_affiliate_id: string | null
           updated_at: string
           whatsapp: string
         }
@@ -311,6 +406,7 @@ export type Database = {
           owner_id: string
           owner_name: string
           phone: string
+          referred_by_affiliate_id?: string | null
           updated_at?: string
           whatsapp: string
         }
@@ -331,17 +427,26 @@ export type Database = {
           owner_id?: string
           owner_name?: string
           phone?: string
+          referred_by_affiliate_id?: string | null
           updated_at?: string
           whatsapp?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stores_referred_by_affiliate_id_fkey"
+            columns: ["referred_by_affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_promo_code: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never

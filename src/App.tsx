@@ -13,6 +13,7 @@ import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import DashboardPage from "./pages/DashboardPage";
 import AdminPortal from "./pages/AdminPortal";
+import AffiliatePage from "./pages/AffiliatePage";
 import MobileBottomNav from "./components/MobileBottomNav";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/admin-portal" element={<AdminPortal />} />
           <Route path="/admin" element={<AdminPortal />} />
+          <Route path="/affiliate" element={<AffiliatePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <MobileBottomNav />
