@@ -33,43 +33,75 @@ Deno.serve(async (req) => {
 
     switch (action) {
       case "get_stores": {
-        // Get all stores with payment info
-        const { data: stores, error } = await supabase
+        // Get all stores with payment info - optimized query
+        const { data: stores, error: storesError } = await supabase
           .from("stores")
           .select("*")
           .order("created_at", { ascending: false });
 
-        if (error) throw error;
+        if (storesError) {
+          console.error("Error fetching stores:", storesError);
+          throw storesError;
+        }
 
-        // Get payment info for each store
-        const storesWithPayments = await Promise.all(
-          stores.map(async (store) => {
-            const { data: payments } = await supabase
-              .from("store_payments")
-              .select("*")
-              .eq("store_id", store.id)
-              .order("due_date", { ascending: false })
-              .limit(1);
+        if (!stores || stores.length === 0) {
+          return new Response(
+            JSON.stringify({ stores: [] }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
 
-            const { data: notes } = await supabase
-              .from("admin_notes")
-              .select("*")
-              .eq("store_id", store.id)
-              .order("created_at", { ascending: false });
+        // Batch fetch all related data
+        const storeIds = stores.map(s => s.id);
+        
+        // Fetch all payments in one query
+        const { data: allPayments } = await supabase
+          .from("store_payments")
+          .select("*")
+          .in("store_id", storeIds)
+          .order("due_date", { ascending: false });
 
-            const { count: followersCount } = await supabase
-              .from("store_followers")
-              .select("*", { count: "exact", head: true })
-              .eq("store_id", store.id);
+        // Fetch all notes in one query
+        const { data: allNotes } = await supabase
+          .from("admin_notes")
+          .select("*")
+          .in("store_id", storeIds)
+          .order("created_at", { ascending: false });
 
-            return {
-              ...store,
-              latest_payment: payments?.[0] || null,
-              notes: notes || [],
-              followers_count: followersCount || 0,
-            };
-          })
-        );
+        // Fetch all follower counts
+        const { data: followerCounts } = await supabase
+          .from("store_followers")
+          .select("store_id")
+          .in("store_id", storeIds);
+
+        // Group data by store
+        const paymentsByStore = new Map();
+        (allPayments || []).forEach(p => {
+          if (!paymentsByStore.has(p.store_id)) {
+            paymentsByStore.set(p.store_id, p);
+          }
+        });
+
+        const notesByStore = new Map();
+        (allNotes || []).forEach(n => {
+          if (!notesByStore.has(n.store_id)) {
+            notesByStore.set(n.store_id, []);
+          }
+          notesByStore.get(n.store_id).push(n);
+        });
+
+        const followersCountByStore = new Map();
+        (followerCounts || []).forEach(f => {
+          followersCountByStore.set(f.store_id, (followersCountByStore.get(f.store_id) || 0) + 1);
+        });
+
+        // Build final result
+        const storesWithPayments = stores.map(store => ({
+          ...store,
+          latest_payment: paymentsByStore.get(store.id) || null,
+          notes: notesByStore.get(store.id) || [],
+          followers_count: followersCountByStore.get(store.id) || 0,
+        }));
 
         return new Response(
           JSON.stringify({ stores: storesWithPayments }),
@@ -143,12 +175,35 @@ Deno.serve(async (req) => {
 
       case "mark_paid": {
         const { payment_id } = params;
+        
+        // Get payment details first to calculate affiliate commission
+        const { data: payment } = await supabase
+          .from("store_payments")
+          .select("*, stores(referred_by_affiliate_id)")
+          .eq("id", payment_id)
+          .single();
+
         const { error } = await supabase
           .from("store_payments")
           .update({ is_paid: true, paid_at: new Date().toISOString() })
           .eq("id", payment_id);
 
         if (error) throw error;
+
+        // If store was referred by an affiliate, create earnings record
+        if (payment?.stores?.referred_by_affiliate_id) {
+          const commissionAmount = payment.amount * 0.30;
+          await supabase
+            .from("affiliate_earnings")
+            .insert({
+              affiliate_id: payment.stores.referred_by_affiliate_id,
+              store_id: payment.store_id,
+              payment_id: payment_id,
+              amount: commissionAmount,
+            });
+          console.log(`Affiliate commission of ${commissionAmount} created`);
+        }
+
         console.log(`Payment ${payment_id} marked as paid`);
         return new Response(
           JSON.stringify({ success: true }),
@@ -193,6 +248,7 @@ Deno.serve(async (req) => {
             store_id,
             sender_type: "admin",
             message,
+            is_read: false,
           });
 
         if (error) throw error;
@@ -204,37 +260,50 @@ Deno.serve(async (req) => {
       }
 
       case "get_all_chats": {
-        // Get stores with unread messages
+        // Get stores with unread messages - optimized
         const { data: stores } = await supabase
           .from("stores")
           .select("id, name");
 
-        const storesWithChats = await Promise.all(
-          (stores || []).map(async (store) => {
-            const { data: messages } = await supabase
-              .from("admin_chats")
-              .select("*")
-              .eq("store_id", store.id)
-              .order("created_at", { ascending: false })
-              .limit(1);
+        if (!stores || stores.length === 0) {
+          return new Response(
+            JSON.stringify({ chats: [] }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
 
-            const { count: unreadCount } = await supabase
-              .from("admin_chats")
-              .select("*", { count: "exact", head: true })
-              .eq("store_id", store.id)
-              .eq("sender_type", "seller")
-              .eq("is_read", false);
+        const storeIds = stores.map(s => s.id);
 
-            return {
-              ...store,
-              last_message: messages?.[0] || null,
-              unread_count: unreadCount || 0,
-            };
-          })
-        );
+        // Batch fetch messages
+        const { data: allMessages } = await supabase
+          .from("admin_chats")
+          .select("*")
+          .in("store_id", storeIds)
+          .order("created_at", { ascending: false });
+
+        // Group and process
+        const messagesByStore = new Map();
+        const unreadByStore = new Map();
+        
+        (allMessages || []).forEach(msg => {
+          if (!messagesByStore.has(msg.store_id)) {
+            messagesByStore.set(msg.store_id, msg);
+          }
+          if (msg.sender_type === "seller" && !msg.is_read) {
+            unreadByStore.set(msg.store_id, (unreadByStore.get(msg.store_id) || 0) + 1);
+          }
+        });
+
+        const storesWithChats = stores
+          .map(store => ({
+            ...store,
+            last_message: messagesByStore.get(store.id) || null,
+            unread_count: unreadByStore.get(store.id) || 0,
+          }))
+          .filter(s => s.last_message);
 
         return new Response(
-          JSON.stringify({ chats: storesWithChats.filter(s => s.last_message) }),
+          JSON.stringify({ chats: storesWithChats }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -248,6 +317,47 @@ Deno.serve(async (req) => {
           .eq("sender_type", "seller");
 
         if (error) throw error;
+        return new Response(
+          JSON.stringify({ success: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      case "get_affiliates": {
+        const { data, error } = await supabase
+          .from("affiliates")
+          .select("*, affiliate_earnings(amount, is_paid)")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        const affiliatesWithStats = (data || []).map(affiliate => {
+          const earnings = affiliate.affiliate_earnings || [];
+          const totalEarned = earnings.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
+          const unpaidEarnings = earnings.filter((e: any) => !e.is_paid).reduce((sum: number, e: any) => sum + Number(e.amount), 0);
+          return {
+            ...affiliate,
+            total_earned: totalEarned,
+            unpaid_earnings: unpaidEarnings,
+          };
+        });
+
+        return new Response(
+          JSON.stringify({ affiliates: affiliatesWithStats }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      case "pay_affiliate": {
+        const { affiliate_id } = params;
+        const { error } = await supabase
+          .from("affiliate_earnings")
+          .update({ is_paid: true, paid_at: new Date().toISOString() })
+          .eq("affiliate_id", affiliate_id)
+          .eq("is_paid", false);
+
+        if (error) throw error;
+        console.log(`Affiliate ${affiliate_id} earnings paid`);
         return new Response(
           JSON.stringify({ success: true }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }

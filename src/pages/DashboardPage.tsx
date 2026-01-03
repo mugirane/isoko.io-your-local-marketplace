@@ -495,7 +495,7 @@ const DashboardPage = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-1 bg-secondary/30 py-6 md:py-8">
+      <main className="flex-1 bg-secondary/30 py-6 pb-24 md:py-8 md:pb-8">
         <div className="container">
           {/* Header */}
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

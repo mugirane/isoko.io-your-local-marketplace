@@ -4,7 +4,6 @@ import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
 import StoreCard from "@/components/StoreCard";
 import CategoryCard from "@/components/CategoryCard";
-import MobileBottomNav from "@/components/MobileBottomNav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CATEGORIES } from "@/lib/types";
 import { useStores } from "@/hooks/useStores";
@@ -22,7 +21,7 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-1">
+      <main className="flex-1 pb-20 md:pb-0">
         {/* Hero Section */}
         <HeroSection />
 
@@ -173,7 +172,6 @@ const Index = () => {
       </main>
 
       <Footer />
-      <MobileBottomNav />
     </div>
   );
 };

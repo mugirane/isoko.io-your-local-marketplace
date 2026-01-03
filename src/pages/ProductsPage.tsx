@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { Search, Store, ShoppingBag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import MobileBottomNav from "@/components/MobileBottomNav";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -58,7 +57,7 @@ const ProductsPage = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      <main className="flex-1 bg-secondary/30 py-8">
+      <main className="flex-1 bg-secondary/30 py-8 pb-24 md:pb-8">
         <div className="container">
           {/* Header */}
           <div className="mb-8 text-center">
@@ -182,7 +181,6 @@ const ProductsPage = () => {
       </main>
 
       <Footer />
-      <MobileBottomNav />
     </div>
   );
 };

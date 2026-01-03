@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Loader2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ImageUploadProps {
@@ -34,16 +34,33 @@ const ImageUpload = ({
     }
   };
 
-  const placeholders = {
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200",
-    cover: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800",
-    logo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200",
-  };
-
   const sizes = {
     avatar: "h-24 w-24 rounded-full",
     cover: "h-32 w-full rounded-lg",
     logo: "h-20 w-20 rounded-xl",
+  };
+
+  const renderPlaceholder = () => {
+    if (variant === "avatar") {
+      return (
+        <div className="flex h-full w-full items-center justify-center bg-muted">
+          <User className="h-10 w-10 text-muted-foreground" />
+        </div>
+      );
+    }
+    if (variant === "logo") {
+      return (
+        <div className="flex h-full w-full items-center justify-center bg-muted">
+          <Camera className="h-8 w-8 text-muted-foreground" />
+        </div>
+      );
+    }
+    // Cover
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+        <Camera className="h-8 w-8 text-muted-foreground" />
+      </div>
+    );
   };
 
   return (
@@ -56,11 +73,15 @@ const ImageUpload = ({
         className="hidden"
       />
       <div className={`overflow-hidden ${sizes[variant]}`}>
-        <img
-          src={currentImage || placeholders[variant]}
-          alt="Upload preview"
-          className="w-full h-full object-cover"
-        />
+        {currentImage ? (
+          <img
+            src={currentImage}
+            alt="Upload preview"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          renderPlaceholder()
+        )}
       </div>
       <Button
         type="button"

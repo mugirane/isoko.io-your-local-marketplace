@@ -31,7 +31,7 @@ const StoresPage = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-1">
+      <main className="flex-1 pb-20 md:pb-0">
         {/* Header */}
         <section className="bg-secondary/50 py-12">
           <div className="container">
