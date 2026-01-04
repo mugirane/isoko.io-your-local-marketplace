@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Store, Users, MessageCircle, CreditCard, FileText,
-  Lock, Unlock, Search, Send, Bell, X, ArrowLeft
+  Lock, Unlock, Search, Send, Bell, X, ArrowLeft, Gift
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import AdminChatPanel from "@/components/AdminChatPanel";
 
 interface StoreWithInfo {
   id: string;
@@ -512,9 +513,7 @@ const AdminPortal = () => {
           <TabsContent value="chats">
             <Card>
               <CardContent className="p-4">
-                <p className="text-center text-muted-foreground">
-                  Select a store from the Stores tab to view and send messages
-                </p>
+                <AdminChatPanel adminPassword={adminPassword} />
               </CardContent>
             </Card>
           </TabsContent>

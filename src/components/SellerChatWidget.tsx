@@ -90,16 +90,24 @@ const SellerChatWidget = ({ storeId }: SellerChatWidgetProps) => {
     }
   };
 
-  const handleOpen = () => {
+  const handleOpen = async () => {
     setIsOpen(true);
     setUnreadCount(0);
+    
+    // Mark messages as read
+    await supabase
+      .from("admin_chats")
+      .update({ is_read: true })
+      .eq("store_id", storeId)
+      .eq("sender_type", "admin")
+      .eq("is_read", false);
   };
 
   return (
     <>
-      {/* Chat Button */}
+      {/* Chat Button - positioned higher to avoid mobile nav */}
       <motion.div
-        className="fixed bottom-4 right-4 z-50"
+        className="fixed bottom-20 right-4 z-50 md:bottom-4"
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 1 }}
@@ -124,14 +132,14 @@ const SellerChatWidget = ({ storeId }: SellerChatWidgetProps) => {
         </Button>
       </motion.div>
 
-      {/* Chat Window */}
+      {/* Chat Window - positioned higher on mobile */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-20 right-4 z-50 w-80"
+            className="fixed bottom-36 right-4 z-50 w-80 md:bottom-20"
           >
             <Card className="flex flex-col overflow-hidden shadow-xl">
               {/* Header */}

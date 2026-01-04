@@ -75,7 +75,7 @@ const ProductCard = ({ product, store, index = 0 }: ProductCardProps) => {
                     className="gap-1 text-[10px] sm:text-sm h-7 sm:h-9 px-2 sm:px-3"
                   >
                     <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Order</span>
+                    <span>Order</span>
                   </Button>
                 )}
               </div>

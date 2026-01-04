@@ -296,11 +296,14 @@ Deno.serve(async (req) => {
 
         const storesWithChats = stores
           .map(store => ({
-            ...store,
-            last_message: messagesByStore.get(store.id) || null,
+            store_id: store.id,
+            store_name: store.name,
+            last_message: messagesByStore.get(store.id)?.message || "",
+            last_message_time: messagesByStore.get(store.id)?.created_at || "",
             unread_count: unreadByStore.get(store.id) || 0,
           }))
-          .filter(s => s.last_message);
+          .filter(s => s.last_message)
+          .sort((a, b) => new Date(b.last_message_time).getTime() - new Date(a.last_message_time).getTime());
 
         return new Response(
           JSON.stringify({ chats: storesWithChats }),

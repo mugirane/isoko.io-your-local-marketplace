@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CATEGORIES, formatPrice } from "@/lib/types";
+import { CATEGORIES, CURRENCIES, formatPrice } from "@/lib/types";
 import type { Store as StoreType, Product, Profile } from "@/lib/types";
 import ImageUpload from "@/components/ImageUpload";
 import { useImageUpload } from "@/hooks/useImageUpload";
@@ -74,6 +74,7 @@ const DashboardPage = () => {
     address: "",
     category: "",
     is_visible: true,
+    currency: "RWF",
   });
 
   // Product form state
@@ -161,6 +162,7 @@ const DashboardPage = () => {
         address: storeData.address,
         category: storeData.category,
         is_visible: storeData.is_visible ?? true,
+        currency: (storeData as any).currency || "RWF",
       });
 
       // Fetch products
@@ -274,6 +276,7 @@ const DashboardPage = () => {
         address: storeForm.address,
         category: storeForm.category,
         is_visible: storeForm.is_visible,
+        currency: storeForm.currency,
         updated_at: new Date().toISOString(),
       })
       .eq("id", store.id);
@@ -728,16 +731,40 @@ const DashboardPage = () => {
                         )}
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Address</Label>
-                      {editingStore ? (
-                        <Input
-                          value={storeForm.address}
-                          onChange={(e) => setStoreForm(prev => ({ ...prev, address: e.target.value }))}
-                        />
-                      ) : (
-                        <p className="text-foreground">{store.address}</p>
-                      )}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Address</Label>
+                        {editingStore ? (
+                          <Input
+                            value={storeForm.address}
+                            onChange={(e) => setStoreForm(prev => ({ ...prev, address: e.target.value }))}
+                          />
+                        ) : (
+                          <p className="text-foreground">{store.address}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Store Currency</Label>
+                        {editingStore ? (
+                          <Select
+                            value={storeForm.currency}
+                            onValueChange={(value) => setStoreForm(prev => ({ ...prev, currency: value }))}
+                          >
+                            <SelectTrigger className="bg-background">
+                              <SelectValue placeholder="Select currency" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {CURRENCIES.map(curr => (
+                                <SelectItem key={curr.code} value={curr.code}>
+                                  {curr.symbol} - {curr.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <p className="text-foreground">{(store as any).currency || "RWF"}</p>
+                        )}
+                      </div>
                     </div>
                     {editingStore && (
                       <Button onClick={handleSaveStore} className="gap-2">
