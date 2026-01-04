@@ -42,11 +42,14 @@ const AffiliatePage = () => {
   const [earnings, setEarnings] = useState<EarningData[]>([]);
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signup");
+  const [authLoading, setAuthLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phone: "",
+    password: "",
   });
 
   useEffect(() => {
@@ -101,54 +104,76 @@ const AffiliatePage = () => {
     setIsLoading(false);
   };
 
-  const handleSubmit = async () => {
-    if (!userId) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to become an affiliate.",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
-
-    if (!formData.fullName || !formData.email || !formData.phone) {
+  // Handle signup/signin for affiliate
+  const handleAuth = async () => {
+    if (!formData.email || !formData.password) {
       toast({
         title: "Missing information",
-        description: "Please fill in all fields.",
+        description: "Please enter email and password.",
         variant: "destructive",
       });
       return;
     }
 
-    setIsSubmitting(true);
+    setAuthLoading(true);
 
-    // Generate promo code
-    const { data: promoCode } = await supabase.rpc("generate_promo_code");
+    if (authMode === "signup") {
+      if (!formData.fullName || !formData.phone) {
+        toast({
+          title: "Missing information",
+          description: "Please fill in all fields.",
+          variant: "destructive",
+        });
+        setAuthLoading(false);
+        return;
+      }
 
-    const { error } = await supabase.from("affiliates").insert({
-      user_id: userId,
-      full_name: formData.fullName,
-      email: formData.email,
-      phone: formData.phone,
-      promo_code: promoCode || `ISOKO${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-    });
-
-    setIsSubmitting(false);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/affiliate`,
+          data: {
+            full_name: formData.fullName,
+          },
+        },
       });
+
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+        setAuthLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        // Create affiliate record
+        const { data: promoCode } = await supabase.rpc("generate_promo_code");
+        
+        await supabase.from("affiliates").insert({
+          user_id: data.user.id,
+          full_name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          promo_code: promoCode || `ISOKO${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        });
+
+        toast({
+          title: "Welcome to the Affiliate Program! 🎉",
+          description: "Your account has been created.",
+        });
+      }
     } else {
-      toast({
-        title: "Welcome to the Affiliate Program! 🎉",
-        description: "Your promo code has been generated.",
+      const { error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
       });
-      fetchAffiliateData();
+
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      }
     }
+
+    setAuthLoading(false);
   };
 
   const copyPromoCode = () => {
@@ -360,35 +385,38 @@ const AffiliatePage = () => {
                 </Card>
               </div>
 
-              {!userId && (
-                <Alert className="mb-6 border-amber/30 bg-amber/10">
-                  <AlertDescription>
-                    You'll need to{" "}
-                    <a href="/auth" className="text-primary font-medium hover:underline">
-                      sign in or create an account
-                    </a>{" "}
-                    to become an affiliate.
-                  </AlertDescription>
-                </Alert>
-              )}
-
               <Card>
                 <CardHeader>
-                  <CardTitle>Join the Program</CardTitle>
+                  <CardTitle>{authMode === "signup" ? "Join the Affiliate Program" : "Sign In to Your Affiliate Account"}</CardTitle>
                   <CardDescription>
-                    Fill in your details to become an affiliate partner
+                    {authMode === "signup" 
+                      ? "Create your affiliate account to start earning"
+                      : "Access your existing affiliate dashboard"
+                    }
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name *</Label>
-                    <Input
-                      id="fullName"
-                      placeholder="Your full name"
-                      value={formData.fullName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                    />
-                  </div>
+                  {authMode === "signup" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="fullName">Full Name *</Label>
+                        <Input
+                          id="fullName"
+                          placeholder="Your full name"
+                          value={formData.fullName}
+                          onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number *</Label>
+                        <PhoneInput
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
+                        />
+                      </div>
+                    </>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address *</Label>
                     <Input
@@ -400,21 +428,36 @@ const AffiliatePage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number *</Label>
-                    <PhoneInput
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
+                    <Label htmlFor="password">Password *</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Create a password"
+                      value={formData.password}
+                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                     />
                   </div>
                   <Button 
-                    onClick={handleSubmit} 
+                    onClick={handleAuth} 
                     className="w-full gap-2" 
-                    disabled={isSubmitting}
+                    disabled={authLoading}
                   >
-                    {isSubmitting ? "Joining..." : "Join Affiliate Program"}
+                    {authLoading ? "Please wait..." : (authMode === "signup" ? "Join Affiliate Program" : "Sign In")}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
+                  
+                  <div className="text-center pt-4 border-t">
+                    <p className="text-sm text-muted-foreground">
+                      {authMode === "signup" ? "Already have an affiliate account?" : "New to the affiliate program?"}
+                      {" "}
+                      <button 
+                        onClick={() => setAuthMode(authMode === "signup" ? "signin" : "signup")}
+                        className="text-primary font-medium hover:underline"
+                      >
+                        {authMode === "signup" ? "Sign in" : "Sign up"}
+                      </button>
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>

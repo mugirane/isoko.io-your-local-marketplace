@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Store, MapPin, Phone, Mail, User, Package, ArrowRight, ArrowLeft, Check, AlertCircle, Gift } from "lucide-react";
+import { Store, MapPin, Phone, Mail, User, Package, ArrowRight, ArrowLeft, Check, Gift, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { CATEGORIES } from "@/lib/types";
+import { CATEGORIES, CURRENCIES } from "@/lib/types";
 import { supabase } from "@/integrations/supabase/client";
 import PhoneInput from "@/components/PhoneInput";
 
 const CreateStorePage = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // Start at 0 for auth step
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [promoCodeValid, setPromoCodeValid] = useState<boolean | null>(null);
@@ -32,17 +39,25 @@ const CreateStorePage = () => {
     category: "",
     address: "",
     promoCode: "",
+    currency: "RWF",
   });
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUserId(session?.user?.id || null);
+        // Auto-advance to step 1 if logged in
+        if (session?.user && step === 0) {
+          setStep(1);
+        }
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUserId(session?.user?.id || null);
+      if (session?.user) {
+        setStep(1);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -134,6 +149,7 @@ const CreateStorePage = () => {
       whatsapp: formData.whatsapp || formData.phone,
       address: formData.address,
       category: formData.category,
+      currency: formData.currency,
     };
 
     // Add affiliate reference if promo code is valid
@@ -172,35 +188,18 @@ const CreateStorePage = () => {
       
       <main className="flex-1 bg-secondary/30 py-12 pb-24 md:pb-12">
         <div className="container max-w-3xl">
-          {/* Payment Notice */}
-          <Alert className="mb-6 border-primary/20 bg-primary/5">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Monthly Subscription:</strong> 8,000 RWF/month. Payment via MoMo code: <strong>1794847</strong>
+          {/* Free Trial Notice */}
+          <Alert className="mb-6 border-green-500/30 bg-green-500/10">
+            <Clock className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-700">
+              <strong>🎉 New sellers get 3 weeks free trial!</strong> No payment required to start.
             </AlertDescription>
           </Alert>
-
-          {/* Auth Notice */}
-          {!userId && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 rounded-lg bg-amber/10 border border-amber/30 p-4 text-center"
-            >
-              <p className="text-sm">
-                You'll need to{" "}
-                <a href="/auth" className="text-primary font-medium hover:underline">
-                  sign in or create an account
-                </a>{" "}
-                to save your store.
-              </p>
-            </motion.div>
-          )}
 
           {/* Progress Steps */}
           <div className="mb-8">
             <div className="flex items-center justify-center gap-4">
-              {[1, 2, 3].map((s) => (
+              {[0, 1, 2, 3].map((s) => (
                 <div key={s} className="flex items-center gap-2">
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-full font-semibold transition-colors ${
@@ -212,6 +211,7 @@ const CreateStorePage = () => {
                     {step > s ? <Check className="h-5 w-5" /> : s}
                   </div>
                   <span className={`hidden sm:block text-sm ${step >= s ? "font-medium" : "text-muted-foreground"}`}>
+                    {s === 0 && "Sign Up"}
                     {s === 1 && "Business Info"}
                     {s === 2 && "Store Details"}
                     {s === 3 && "Preview"}
@@ -228,6 +228,36 @@ const CreateStorePage = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
           >
+            {/* Step 0: Sign Up First */}
+            {step === 0 && (
+              <Card>
+                <CardHeader className="text-center">
+                  <CardTitle className="flex items-center justify-center gap-2">
+                    <User className="h-5 w-5 text-primary" />
+                    Create Your Account First
+                  </CardTitle>
+                  <CardDescription>
+                    Sign up or sign in to start creating your store
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="text-center py-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                      <Store className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Ready to open your store?</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Create an account to manage your store, add products, and connect with customers.
+                    </p>
+                    <Button onClick={() => navigate("/auth")} className="gap-2">
+                      Sign Up / Sign In
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Step 1: Business Info */}
             {step === 1 && (
               <Card>
@@ -377,6 +407,28 @@ const CreateStorePage = () => {
                       value={formData.address}
                       onChange={(e) => updateFormData("address", e.target.value)}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Store Currency *</Label>
+                    <Select
+                      value={formData.currency}
+                      onValueChange={(value) => updateFormData("currency", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CURRENCIES.map((currency) => (
+                          <SelectItem key={currency.code} value={currency.code}>
+                            {currency.symbol} - {currency.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      This will be the default currency for your products
+                    </p>
                   </div>
                 </CardContent>
               </Card>

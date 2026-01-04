@@ -10,14 +10,13 @@ interface StoreCardProps {
   index?: number;
 }
 
-const StoreCard = ({ store, index = 0 }: StoreCardProps) => {
+const StoreCard = ({ store }: StoreCardProps) => {
   const category = CATEGORIES.find((c) => c.id === store.category);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
     >
       <Link to={`/store/${store.id}`}>
         <Card variant="store" className="h-full">

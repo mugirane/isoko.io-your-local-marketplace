@@ -70,11 +70,26 @@ export const CATEGORIES: Category[] = [
   { id: "services", name: "Services", icon: "🔧" },
 ];
 
-// Format price with RWF currency
+export const CURRENCIES = [
+  { code: "RWF", name: "Rwandan Franc", symbol: "RWF" },
+  { code: "USD", name: "US Dollar", symbol: "$" },
+  { code: "EUR", name: "Euro", symbol: "€" },
+  { code: "GBP", name: "British Pound", symbol: "£" },
+  { code: "KES", name: "Kenyan Shilling", symbol: "KES" },
+  { code: "UGX", name: "Ugandan Shilling", symbol: "UGX" },
+  { code: "TZS", name: "Tanzanian Shilling", symbol: "TZS" },
+  { code: "BIF", name: "Burundian Franc", symbol: "BIF" },
+  { code: "CDF", name: "Congolese Franc", symbol: "CDF" },
+];
+
+// Format price with currency
 export const formatPrice = (price: number, currency: string = "RWF"): string => {
-  return new Intl.NumberFormat('rw-RW', {
+  const currencyInfo = CURRENCIES.find(c => c.code === currency);
+  const symbol = currencyInfo?.symbol || currency;
+  
+  return new Intl.NumberFormat('en-US', {
     style: 'decimal',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(price) + ' ' + currency;
+  }).format(price) + ' ' + symbol;
 };

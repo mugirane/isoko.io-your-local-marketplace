@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Store, ShoppingBag, Grid3X3, User, LayoutDashboard } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Store, ShoppingBag, Grid3X3, User, LayoutDashboard, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 const MobileBottomNav = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -20,6 +22,12 @@ const MobileBottomNav = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast({ title: "Signed out successfully" });
+    navigate("/");
+  };
 
   const navItems = [
     { href: "/", label: "Stores", icon: Store },
@@ -58,6 +66,15 @@ const MobileBottomNav = () => {
             </Link>
           );
         })}
+        {isLoggedIn && (
+          <button
+            onClick={handleSignOut}
+            className="flex flex-col items-center gap-1 px-3 py-1 transition-colors text-muted-foreground"
+          >
+            <LogOut className="h-5 w-5" />
+            <span className="text-xs font-medium">Sign Out</span>
+          </button>
+        )}
       </div>
     </nav>
   );
