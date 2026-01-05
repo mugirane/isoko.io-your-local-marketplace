@@ -107,7 +107,7 @@ const Navbar = () => {
                 <Button variant="outline" size="sm" className="gap-2">
                   <Store className="h-4 w-4" />
                   <span className="hidden lg:inline">Open Store</span>
-                  <span className="text-xs text-muted-foreground hidden xl:inline ml-1">(3 weeks free)</span>
+                  <span className="text-xs text-muted-foreground hidden xl:inline ml-1">(3 weeks free, then 8,000 RWF/mo)</span>
                 </Button>
               </Link>
               <Link to="/auth">

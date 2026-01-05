@@ -57,13 +57,13 @@ const MobileBottomNav = () => {
 
   return (
     <>
-      {/* Free Trial Banner - Mobile */}
-      {!isLoggedIn && (
+      {/* Free Trial Banner - Only show on create-store page */}
+      {!isLoggedIn && location.pathname === "/create-store" && (
         <div className="fixed bottom-16 left-0 right-0 z-40 bg-primary/90 text-primary-foreground text-center py-1.5 text-xs md:hidden">
-          <Link to="/create-store" className="flex items-center justify-center gap-1">
+          <span className="flex items-center justify-center gap-1">
             <Plus className="h-3 w-3" />
-            Open Store - <strong>3 weeks free</strong> then 8,000 RWF/month
-          </Link>
+            <strong>3 weeks free</strong> then 8,000 RWF/month
+          </span>
         </div>
       )}
 
