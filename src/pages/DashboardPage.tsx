@@ -162,7 +162,7 @@ const DashboardPage = () => {
         address: storeData.address,
         category: storeData.category,
         is_visible: storeData.is_visible ?? true,
-        currency: (storeData as any).currency || "RWF",
+        currency: storeData.currency || "RWF",
       });
 
       // Fetch products
@@ -762,7 +762,7 @@ const DashboardPage = () => {
                             </SelectContent>
                           </Select>
                         ) : (
-                          <p className="text-foreground">{(store as any).currency || "RWF"}</p>
+                          <p className="text-foreground">{store.currency || "RWF"}</p>
                         )}
                       </div>
                     </div>

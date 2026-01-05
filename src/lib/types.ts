@@ -15,6 +15,7 @@ export interface Store {
   logo: string | null;
   is_active: boolean;
   is_visible: boolean;
+  currency: string;
   created_at: string;
   updated_at: string;
   followers_count?: number;

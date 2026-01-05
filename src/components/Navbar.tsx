@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import CartSheet from "@/components/CartSheet";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -86,6 +87,7 @@ const Navbar = () => {
 
         {/* Auth Buttons - Desktop */}
         <div className="hidden items-center gap-2 md:flex">
+          <CartSheet />
           {userId ? (
             <>
               <Link to="/dashboard">
@@ -105,6 +107,7 @@ const Navbar = () => {
                 <Button variant="outline" size="sm" className="gap-2">
                   <Store className="h-4 w-4" />
                   <span className="hidden lg:inline">Open Store</span>
+                  <span className="text-xs text-muted-foreground hidden xl:inline ml-1">(3 weeks free)</span>
                 </Button>
               </Link>
               <Link to="/auth">

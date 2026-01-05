@@ -39,9 +39,26 @@ const AdminChatPanel = ({ adminPassword }: AdminChatPanelProps) => {
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Show notification on initial load if there are unread messages
   useEffect(() => {
-    fetchStoreChats();
+    const checkUnreadOnLoad = async () => {
+      await fetchStoreChats();
+    };
+    checkUnreadOnLoad();
+  }, []);
 
+  // Show toast when unread count changes
+  useEffect(() => {
+    const totalUnreadCount = storeChats.reduce((sum, chat) => sum + chat.unread_count, 0);
+    if (totalUnreadCount > 0 && !selectedStoreId) {
+      toast({
+        title: `${totalUnreadCount} unread message${totalUnreadCount > 1 ? 's' : ''}`,
+        description: "You have new messages from sellers",
+      });
+    }
+  }, [storeChats.length]); // Only trigger when chats list changes
+
+  useEffect(() => {
     // Subscribe to new messages
     const channel = supabase
       .channel("admin-all-chats")

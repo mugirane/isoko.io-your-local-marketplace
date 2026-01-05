@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MessageCircle, ChevronLeft, ChevronRight, Store as StoreIcon, Package } from "lucide-react";
+import { ArrowLeft, MessageCircle, ChevronLeft, ChevronRight, Store as StoreIcon, Package, Plus, Minus, ShoppingCart } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,16 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProduct, useStore } from "@/hooks/useStores";
 import { formatPrice } from "@/lib/types";
+import { useCart } from "@/hooks/useCart";
+import { toast } from "@/hooks/use-toast";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
   const { data: product, isLoading: productLoading } = useProduct(id);
   const { data: store, isLoading: storeLoading } = useStore(product?.store_id);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const { addItem } = useCart();
 
   const isLoading = productLoading || storeLoading;
 
@@ -37,6 +41,25 @@ const ProductDetailPage = () => {
     if (product?.images && product.images.length > 0) {
       setCurrentImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
     }
+  };
+
+  const handleAddToCart = () => {
+    if (!product || !store) return;
+    
+    for (let i = 0; i < quantity; i++) {
+      addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        currency: product.currency,
+        image: product.images?.[0],
+        storeId: store.id,
+        storeName: store.name,
+        storeWhatsapp: store.whatsapp,
+      });
+    }
+    toast({ title: `${quantity} item${quantity > 1 ? 's' : ''} added to cart` });
+    setQuantity(1);
   };
 
   if (isLoading) {
@@ -221,19 +244,56 @@ const ProductDetailPage = () => {
                 </span>
               </div>
 
-              {/* Order Button */}
-              {store && (
+              {/* Quantity Selector */}
+              <div className="flex items-center gap-4">
+                <span className="font-semibold">Quantity:</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    disabled={!product.in_stock}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="w-12 text-center font-semibold">{quantity}</span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity((q) => q + 1)}
+                    disabled={!product.in_stock}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
-                  variant="whatsapp"
+                  variant="outline"
                   size="lg"
-                  onClick={handleWhatsAppOrder}
+                  onClick={handleAddToCart}
                   disabled={!product.in_stock}
-                  className="gap-2 w-full md:w-auto"
+                  className="gap-2 flex-1"
                 >
-                  <MessageCircle className="h-5 w-5" />
-                  Order via WhatsApp
+                  <ShoppingCart className="h-5 w-5" />
+                  Add to Cart
                 </Button>
-              )}
+                {store && (
+                  <Button
+                    variant="whatsapp"
+                    size="lg"
+                    onClick={handleWhatsAppOrder}
+                    disabled={!product.in_stock}
+                    className="gap-2 flex-1"
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                    <span className="hidden sm:inline">Order via WhatsApp</span>
+                    <span className="sm:hidden">Order</span>
+                  </Button>
+                )}
+              </div>
 
               {/* Store Info */}
               {store && (

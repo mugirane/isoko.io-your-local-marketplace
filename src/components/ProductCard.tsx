@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Product, Store, formatPrice } from "@/lib/types";
+import { useCart } from "@/hooks/useCart";
+import { toast } from "@/hooks/use-toast";
 
 interface ProductCardProps {
   product: Product;
@@ -13,6 +15,8 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, store, index = 0 }: ProductCardProps) => {
+  const { addItem } = useCart();
+
   const handleWhatsAppOrder = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -23,6 +27,25 @@ const ProductCard = ({ product, store, index = 0 }: ProductCardProps) => {
       `Hi! I'm interested in ordering: ${product.name} (${formatPrice(product.price, product.currency)}) from isoko.io`
     );
     window.open(`https://wa.me/${store.whatsapp.replace(/\+/g, '')}?text=${message}`, '_blank');
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!store) return;
+
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      currency: product.currency,
+      image: product.images?.[0],
+      storeId: store.id,
+      storeName: store.name,
+      storeWhatsapp: store.whatsapp,
+    });
+    toast({ title: "Added to cart" });
   };
 
   return (
@@ -62,23 +85,33 @@ const ProductCard = ({ product, store, index = 0 }: ProductCardProps) => {
             </p>
 
             <div className="mt-auto pt-2 sm:pt-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
-                <span className="text-sm sm:text-lg font-bold text-primary">
-                  {formatPrice(product.price, product.currency)}
-                </span>
-                {store && (
+              <span className="text-sm sm:text-lg font-bold text-primary block mb-2">
+                {formatPrice(product.price, product.currency)}
+              </span>
+              {store && (
+                <div className="flex gap-1 sm:gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddToCart}
+                    disabled={!product.in_stock}
+                    className="gap-1 text-[10px] sm:text-sm h-7 sm:h-9 px-2 sm:px-3 flex-1"
+                  >
+                    <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Add</span>
+                  </Button>
                   <Button
                     variant="whatsapp"
                     size="sm"
                     onClick={handleWhatsAppOrder}
                     disabled={!product.in_stock}
-                    className="gap-1 text-[10px] sm:text-sm h-7 sm:h-9 px-2 sm:px-3"
+                    className="gap-1 text-[10px] sm:text-sm h-7 sm:h-9 px-2 sm:px-3 flex-1"
                   >
                     <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span>Order</span>
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </Card>

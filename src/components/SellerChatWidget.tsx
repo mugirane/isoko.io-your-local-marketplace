@@ -69,7 +69,10 @@ const SellerChatWidget = ({ storeId }: SellerChatWidgetProps) => {
         sender_type: msg.sender_type as "admin" | "seller",
       }));
       setMessages(typedMessages);
-      setUnreadCount(typedMessages.filter((m) => m.sender_type === "admin" && !m.is_read).length);
+      // Only count unread if chat is closed
+      if (!isOpen) {
+        setUnreadCount(typedMessages.filter((m) => m.sender_type === "admin" && !m.is_read).length);
+      }
     }
     setLoading(false);
   };
@@ -92,15 +95,23 @@ const SellerChatWidget = ({ storeId }: SellerChatWidgetProps) => {
 
   const handleOpen = async () => {
     setIsOpen(true);
+    // Clear unread count immediately when opening
     setUnreadCount(0);
     
-    // Mark messages as read
-    await supabase
+    // Mark messages as read in database
+    const { error } = await supabase
       .from("admin_chats")
       .update({ is_read: true })
       .eq("store_id", storeId)
       .eq("sender_type", "admin")
       .eq("is_read", false);
+
+    if (!error) {
+      // Update local messages state to reflect read status
+      setMessages((prev) => prev.map((msg) => 
+        msg.sender_type === "admin" ? { ...msg, is_read: true } : msg
+      ));
+    }
   };
 
   return (
