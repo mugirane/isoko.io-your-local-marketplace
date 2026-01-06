@@ -284,13 +284,6 @@ const DashboardPage = () => {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      // Also update all products to use the new currency
-      if (storeForm.currency !== store.currency) {
-        await supabase
-          .from("products")
-          .update({ currency: storeForm.currency })
-          .eq("store_id", store.id);
-      }
       toast({ title: "Store updated!" });
       setEditingStore(false);
       fetchUserData();

@@ -192,7 +192,7 @@ const CreateStorePage = () => {
           <Alert className="mb-6 border-green-500/30 bg-green-500/10">
             <Clock className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-700">
-              <strong>🎉 New sellers get 3 weeks free trial!</strong> After that, only 8,000 RWF/month. No payment required to start.
+              <strong>🎉 New sellers get 3 weeks free trial!</strong> No payment required to start.
             </AlertDescription>
           </Alert>
 
