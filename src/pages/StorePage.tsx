@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import QuickFollowDialog from "@/components/QuickFollowDialog";
+import StoreLocationMap from "@/components/StoreLocationMap";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -407,15 +408,12 @@ const StorePage = () => {
             </TabsContent>
 
             <TabsContent value="location">
-              <div className="rounded-2xl overflow-hidden border bg-secondary h-80 flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">{store.address}</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Map integration coming soon
-                  </p>
-                </div>
-              </div>
+              <StoreLocationMap
+                address={store.address}
+                storeName={store.name}
+                latitude={store.latitude}
+                longitude={store.longitude}
+              />
             </TabsContent>
           </Tabs>
         </section>

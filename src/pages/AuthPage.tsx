@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User, ArrowRight, ShoppingBag } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, ShoppingBag, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
 const AuthPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -160,6 +160,14 @@ const AuthPage = () => {
               <span className="text-xl font-bold text-gradient">isoko.io</span>
             </Link>
           </div>
+
+          {/* Free Trial Notice - Mobile */}
+          <Alert className="mb-6 border-green-500/30 bg-green-500/10">
+            <Clock className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-700">
+              <strong>🎉 New sellers get 3 weeks free trial!</strong> After that, only 8,000 RWF/month. No payment required to start.
+            </AlertDescription>
+          </Alert>
 
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
