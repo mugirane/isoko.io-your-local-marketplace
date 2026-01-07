@@ -57,6 +57,8 @@ export interface Profile {
 }
 
 export const CATEGORIES: Category[] = [
+  { id: "general", name: "General Shop", icon: "🛒" },
+  { id: "pharmacy", name: "Pharmacy", icon: "💊" },
   { id: "electronics", name: "Electronics", icon: "📱" },
   { id: "fashion", name: "Fashion & Clothing", icon: "👗" },
   { id: "food", name: "Food & Groceries", icon: "🍎" },
