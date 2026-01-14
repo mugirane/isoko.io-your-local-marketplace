@@ -23,7 +23,7 @@ const App = () => {
     typeof window !== "undefined" &&
     window.location.hostname === "admin.isoko.store";
   return
-    <QueryClientProvider client={queryClient}>
+    (<QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -47,7 +47,6 @@ const App = () => {
         <MobileBottomNav />
       </BrowserRouter>
     </TooltipProvider>
-  </QueryClientProvider>
-;
+  </QueryClientProvider>);
 
 export default App;
