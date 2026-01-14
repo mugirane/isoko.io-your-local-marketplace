@@ -1,6 +1,16 @@
 {
   "rewrites": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "admin.isoko.store"
+        }
+      ],
+      "destination": "/admin/index.html"
+    },
+    {
       "source": "/(.*)",
       "has": [
         {
