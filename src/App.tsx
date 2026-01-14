@@ -22,8 +22,7 @@ const App = () => {
   const isAdminSubdomain =
     typeof window !== "undefined" &&
     window.location.hostname === "admin.isoko.store";
-  return
-    (<QueryClientProvider client={queryClient}>
+  return (<QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
