@@ -22,30 +22,33 @@ const App = () => {
   const isAdminSubdomain =
     typeof window !== "undefined" &&
     window.location.hostname === "admin.isoko.store";
-  return (<QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter basename={isAdminSubdomain ? "/admin" : "/"}>
-        <Routes>
-          <Route path="/" element={<StoresPage />} />
-          <Route path="/store/:id" element={<StorePage />} />
-          <Route path="/stores" element={<StoresPage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/categories/:categoryId" element={<CategoriesPage />} />
-          <Route path="/create-store" element={<CreateStorePage />} />
-          <Route path="/product/:id" element={<ProductDetailPage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/admin-portal" element={<AdminPortal />} />
-          <Route path="/admin" element={<AdminPortal />} />
-          <Route path="/affiliate" element={<AffiliatePage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <MobileBottomNav />
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>);
 
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter basename={isAdminSubdomain ? "/admin" : "/"}>
+          <Routes>
+            <Route path="/" element={<StoresPage />} />
+            <Route path="/store/:id" element={<StorePage />} />
+            <Route path="/stores" element={<StoresPage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/categories/:categoryId" element={<CategoriesPage />} />
+            <Route path="/create-store" element={<CreateStorePage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/admin-portal" element={<AdminPortal />} />
+            <Route path="/admin" element={<AdminPortal />} />
+            <Route path="/affiliate" element={<AffiliatePage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <MobileBottomNav />
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 export default App;
