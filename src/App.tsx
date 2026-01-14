@@ -18,12 +18,16 @@ import MobileBottomNav from "./components/MobileBottomNav";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const App = () => {
+  const isAdminSubdomain =
+    typeof window !== "undefined" &&
+    window.location.hostname === "admin.isoko.store";
+  return
+    <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename={isAdminSubdomain ? "/admin" : "/"}>
         <Routes>
           <Route path="/" element={<StoresPage />} />
           <Route path="/store/:id" element={<StorePage />} />
@@ -44,6 +48,6 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+;
 
 export default App;
