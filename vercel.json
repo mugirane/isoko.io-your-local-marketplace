@@ -1,17 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "admin.isoko.store"
-        }
-      ],
-      "destination": "/admin",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/(.*)",
