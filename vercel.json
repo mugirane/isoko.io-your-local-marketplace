@@ -1,5 +1,5 @@
 {
-  "rewrites": [
+  "redirects": [
     {
       "source": "/",
       "has": [
@@ -8,18 +8,11 @@
           "value": "admin.isoko.store"
         }
       ],
-      "destination": "/admin/index.html"
-    },
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "admin.isoko.store"
-        }
-      ],
-      "destination": "/admin/$1"
-    },
+      "destination": "/admin",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
