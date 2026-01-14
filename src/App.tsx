@@ -21,31 +21,41 @@ const queryClient = new QueryClient();
 const App = () => {
   const isAdminSubdomain =
     typeof window !== "undefined" &&
-    window.location.hostname === "admin.isoko.store";
+    window.location.hostname.startsWith("admin.");
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter basename={isAdminSubdomain ? "/admin" : "/"}>
+           <BrowserRouter>
           <Routes>
-            <Route path="/" element={<StoresPage />} />
-            <Route path="/store/:id" element={<StorePage />} />
-            <Route path="/stores" element={<StoresPage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/categories/:categoryId" element={<CategoriesPage />} />
-            <Route path="/create-store" element={<CreateStorePage />} />
-            <Route path="/product/:id" element={<ProductDetailPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/admin-portal" element={<AdminPortal />} />
-            <Route path="/admin" element={<AdminPortal />} />
-            <Route path="/affiliate" element={<AffiliatePage />} />
-            <Route path="*" element={<NotFound />} />
+            {isAdminSubdomain ? (
+              <>
+                {/* admin.isoko.store */}
+                <Route path="/" element={<AdminPortal />} />
+                <Route path="*" element={<NotFound />} />
+              </>
+            ) : (
+              <>
+                {/* isoko.store */}
+                <Route path="/" element={<StoresPage />} />
+                <Route path="/store/:id" element={<StorePage />} />
+                <Route path="/stores" element={<StoresPage />} />
+                <Route path="/products" element={<ProductsPage />} />
+                <Route path="/categories" element={<CategoriesPage />} />
+                <Route path="/categories/:categoryId" element={<CategoriesPage />} />
+                <Route path="/create-store" element={<CreateStorePage />} />
+                <Route path="/product/:id" element={<ProductDetailPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/admin" element={<AdminPortal />} />
+                <Route path="/affiliate" element={<AffiliatePage />} />
+                <Route path="*" element={<NotFound />} />
+              </>
+            )}
           </Routes>
-          <MobileBottomNav />
+          {!isAdminSubdomain && <MobileBottomNav />}
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
