@@ -240,7 +240,7 @@ const storeId = store?.id;
       <main className="flex-1">
         {/* Back Button */}
         <div className="container py-4">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="https://isoko.store" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
             Back to stores
           </Link>
