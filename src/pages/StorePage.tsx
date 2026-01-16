@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CATEGORIES } from "@/lib/types";
-import { useStore, useStoreProducts } from "@/hooks/useStores";
+import { useStoreBySubdomain, useStoreProducts } from "@/hooks/useStores";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 interface StorePageProps {
@@ -108,7 +108,7 @@ const storeId = store?.id;
     checkFollowStatus();
   }, [id, userId]);
 
-  if (storeLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
