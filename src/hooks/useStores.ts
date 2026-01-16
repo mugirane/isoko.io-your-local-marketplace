@@ -87,3 +87,24 @@ export const useProduct = (id: string | undefined) => {
     enabled: !!id,
   });
 };
+
+export const useStoreBySubdomain = (subdomain: string | null) => {
+  return useQuery({
+    queryKey: ["store-by-subdomain", subdomain],
+    queryFn: async () => {
+      if (!subdomain) return null;
+
+      const { data, error } = await supabase
+        .from("stores")
+        .select("*")
+        .eq("subdomain", subdomain)
+        .single();
+
+      if (error) throw error;
+
+      return data as Store;
+    },
+    enabled: !!subdomain,
+  });
+};
+
