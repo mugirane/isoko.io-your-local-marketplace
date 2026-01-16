@@ -22,13 +22,10 @@ interface StorePageProps {
 
 const StorePage: React.FC<StorePageProps> = ({ subdomain }) => {
   
-  const { id } = useParams();
-  // const { data: store, isLoading: storeLoading, refetch: refetchStore } = useStore(id);
   const { data: store, isLoading } = useStoreBySubdomain(subdomain);
-
-const storeId = store?.id;
-  const resolvedStoreId = storeId ?? id ?? undefined;
-  const { data: storeProducts = [], isLoading: productsLoading } = useStoreProducts(resolvedStoreId);
+  
+  const storeId = store?.id;
+  const { data: storeProducts = [], isLoading: productsLoading } = useStoreProducts(storeId);
   const category = CATEGORIES.find((c) => c.id === store?.category);
   
   const [isFollowing, setIsFollowing] = useState(false);
@@ -40,18 +37,18 @@ const storeId = store?.id;
 
   // Fetch store categories
   const { data: storeCategories = [] } = useQuery({
-    queryKey: ["store-categories", id],
+    queryKey: ["store-categories", storeId],
     queryFn: async () => {
-      if (!id) return [];
+      if (!storeId) return [];
       const { data, error } = await supabase
         .from("store_categories")
         .select("*")
-        .eq("store_id", id)
+        .eq("store_id", storeId)
         .order("name");
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: !!storeId,
   });
 
   // Filter products by selected store category
@@ -77,7 +74,7 @@ const storeId = store?.id;
 
   // Check if user is following and get follower count
   useEffect(() => {
-    if (!id) return;
+    if (!storeId) return;
 
     const checkFollowStatus = async () => {
       setCheckingFollow(true);
@@ -86,7 +83,7 @@ const storeId = store?.id;
       const { count } = await supabase
         .from("store_followers")
         .select("*", { count: "exact", head: true })
-        .eq("store_id", id);
+        .eq("store_id", storeId);
       
       setFollowerCount(count || 0);
 
@@ -95,7 +92,7 @@ const storeId = store?.id;
         const { data } = await supabase
           .from("store_followers")
           .select("id")
-          .eq("store_id", id)
+          .eq("store_id", storeId)
           .eq("user_id", userId)
           .maybeSingle();
         
@@ -106,7 +103,7 @@ const storeId = store?.id;
     };
 
     checkFollowStatus();
-  }, [id, userId]);
+  }, [storeId, userId]);
 
   if (isLoading) {
     return (
