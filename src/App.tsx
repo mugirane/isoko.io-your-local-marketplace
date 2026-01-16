@@ -19,16 +19,23 @@ import MobileBottomNav from "./components/MobileBottomNav";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const isAdminSubdomain =
-    typeof window !== "undefined" &&
-    window.location.hostname.startsWith("admin.");
+  const hostname =
+    typeof window !== "undefined" ? window.location.hostname : "";
+
+  const parts = hostname.split(".");
+  const subdomain = parts.length > 2 ? parts[0] : null;
+
+  const isAdminSubdomain = subdomain === "admin";
+  const isStoreSubdomain =
+    subdomain && subdomain !== "admin";
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-           <BrowserRouter>
+
+        <BrowserRouter>
           <Routes>
             {isAdminSubdomain ? (
               <>
@@ -36,11 +43,19 @@ const App = () => {
                 <Route path="/" element={<AdminPortal />} />
                 <Route path="*" element={<NotFound />} />
               </>
+            ) : isStoreSubdomain ? (
+              <>
+                {/* store.isoko.store */}
+                <Route
+                  path="/"
+                  element={<StorePage subdomain={subdomain} />}
+                />
+                <Route path="*" element={<NotFound />} />
+              </>
             ) : (
               <>
                 {/* isoko.store */}
                 <Route path="/" element={<StoresPage />} />
-                <Route path="/store/:id" element={<StorePage />} />
                 <Route path="/stores" element={<StoresPage />} />
                 <Route path="/products" element={<ProductsPage />} />
                 <Route path="/categories" element={<CategoriesPage />} />
@@ -49,16 +64,16 @@ const App = () => {
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/admin" element={<AdminPortal />} />
                 <Route path="/affiliate" element={<AffiliatePage />} />
                 <Route path="*" element={<NotFound />} />
               </>
             )}
           </Routes>
-          {!isAdminSubdomain && <MobileBottomNav />}
+            <MobileBottomNav />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
-}; //fixed
+};
+
 export default App;
