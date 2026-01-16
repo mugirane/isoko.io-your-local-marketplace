@@ -18,7 +18,7 @@ const StoreCard = ({ store }: StoreCardProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Link to={`/store/${store.id}`}>
+      <Link to={`${store.subdomain}.isoko.store`}>
         <Card variant="store" className="h-full">
           {/* Cover Image - smaller on mobile */}
           <div className="relative h-24 sm:h-40 overflow-hidden">
