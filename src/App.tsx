@@ -19,11 +19,13 @@ import MobileBottomNav from "./components/MobileBottomNav";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const hostname =
-    typeof window !== "undefined" ? window.location.hostname : "";
+  const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+const parts = hostname.split(".");
+let subdomain: string | null = null;
 
-  const parts = hostname.split(".");
-  const subdomain = parts.length > 2 ? parts[0] : null;
+if (parts.length === 3 && parts[0] !== "www") {
+  subdomain = parts[0]; // store or admin
+}
 
   const isAdminSubdomain = subdomain === "admin";
   const isStoreSubdomain =
