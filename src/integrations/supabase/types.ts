@@ -387,6 +387,7 @@ export type Database = {
           owner_name: string
           phone: string
           referred_by_affiliate_id: string | null
+          subdomain: string | null
           updated_at: string
           whatsapp: string
         }
@@ -409,6 +410,7 @@ export type Database = {
           owner_name: string
           phone: string
           referred_by_affiliate_id?: string | null
+          subdomain?: string | null
           updated_at?: string
           whatsapp: string
         }
@@ -431,6 +433,7 @@ export type Database = {
           owner_name?: string
           phone?: string
           referred_by_affiliate_id?: string | null
+          subdomain?: string | null
           updated_at?: string
           whatsapp?: string
         }
