@@ -16,6 +16,7 @@ export interface Store {
   is_active: boolean;
   is_visible: boolean;
   currency: string;
+  subdomain: string | null;
   created_at: string;
   updated_at: string;
   followers_count?: number;
