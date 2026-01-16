@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Store, MapPin, Phone, Mail, User, Package, ArrowRight, ArrowLeft, Check, Gift, Clock } from "lucide-react";
+import { Store, MapPin, Phone, Mail, User, Package, ArrowRight, ArrowLeft, Check, Gift, Clock, Globe, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ const CreateStorePage = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [promoCodeValid, setPromoCodeValid] = useState<boolean | null>(null);
   const [affiliateId, setAffiliateId] = useState<string | null>(null);
+  const [subdomainStatus, setSubdomainStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [formData, setFormData] = useState({
     businessName: "",
     ownerName: "",
@@ -40,6 +41,7 @@ const CreateStorePage = () => {
     address: "",
     promoCode: "",
     currency: "RWF",
+    subdomain: "",
   });
 
   useEffect(() => {
@@ -63,13 +65,78 @@ const CreateStorePage = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Generate subdomain from business name
+  const generateSubdomain = (name: string): string => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+  };
+
+  // Debounced subdomain check
+  const subdomainCheckTimeout = useRef<NodeJS.Timeout | null>(null);
+  
+  // Check subdomain availability with debounce
+  const checkSubdomainAvailability = (subdomain: string) => {
+    if (subdomainCheckTimeout.current) {
+      clearTimeout(subdomainCheckTimeout.current);
+    }
+    
+    if (!subdomain || subdomain.length < 2) {
+      setSubdomainStatus('idle');
+      return;
+    }
+    
+    setSubdomainStatus('checking');
+    
+    subdomainCheckTimeout.current = setTimeout(async () => {
+      const { data, error } = await supabase
+        .from("stores")
+        .select("id")
+        .eq("subdomain", subdomain)
+        .maybeSingle();
+      
+      if (error) {
+        setSubdomainStatus('idle');
+        return;
+      }
+      
+      setSubdomainStatus(data ? 'taken' : 'available');
+    }, 500); // 500ms debounce
+  };
+
   const updateFormData = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      
+      // Auto-generate subdomain when business name changes (only if subdomain hasn't been manually edited)
+      if (field === "businessName" && prev.subdomain === generateSubdomain(prev.businessName)) {
+        updated.subdomain = generateSubdomain(value);
+      }
+      
+      return updated;
+    });
     
     // Reset promo code validation when changed
     if (field === "promoCode") {
       setPromoCodeValid(null);
       setAffiliateId(null);
+    }
+    
+    // Check subdomain availability when it changes
+    if (field === "subdomain") {
+      const cleanSubdomain = generateSubdomain(value);
+      checkSubdomainAvailability(cleanSubdomain);
+    }
+    
+    // Also check when business name changes and subdomain follows
+    if (field === "businessName") {
+      const newSubdomain = generateSubdomain(value);
+      if (formData.subdomain === generateSubdomain(formData.businessName) || !formData.subdomain) {
+        checkSubdomainAvailability(newSubdomain);
+      }
     }
   };
 
@@ -108,6 +175,31 @@ const CreateStorePage = () => {
         });
         return;
       }
+      // Validate subdomain
+      if (!formData.subdomain || formData.subdomain.length < 2) {
+        toast({
+          title: "Invalid subdomain",
+          description: "Please enter a valid subdomain (at least 2 characters)",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (subdomainStatus === 'taken') {
+        toast({
+          title: "Subdomain taken",
+          description: "Please choose a different subdomain",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (subdomainStatus === 'checking') {
+        toast({
+          title: "Please wait",
+          description: "Checking subdomain availability...",
+          variant: "destructive",
+        });
+        return;
+      }
     }
     if (step === 2) {
       if (!formData.description || !formData.category || !formData.address) {
@@ -142,6 +234,7 @@ const CreateStorePage = () => {
     const storeData: any = {
       owner_id: userId,
       name: formData.businessName,
+      subdomain: generateSubdomain(formData.subdomain),
       description: formData.description,
       owner_name: formData.ownerName,
       email: formData.email,
@@ -290,6 +383,52 @@ const CreateStorePage = () => {
                         onChange={(e) => updateFormData("ownerName", e.target.value)}
                       />
                     </div>
+                  </div>
+
+                  {/* Store Subdomain Field */}
+                  <div className="space-y-2">
+                    <Label htmlFor="subdomain" className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-primary" />
+                      Store Subdomain *
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                          id="subdomain"
+                          placeholder="your-store-name"
+                          value={formData.subdomain}
+                          onChange={(e) => updateFormData("subdomain", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          className={`pr-10 ${
+                            subdomainStatus === 'available' ? 'border-green-500 focus-visible:ring-green-500' : 
+                            subdomainStatus === 'taken' ? 'border-red-500 focus-visible:ring-red-500' : ''
+                          }`}
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          {subdomainStatus === 'checking' && (
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          )}
+                          {subdomainStatus === 'available' && (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          )}
+                          {subdomainStatus === 'taken' && (
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Your store will be available at: <span className="font-medium text-foreground">{formData.subdomain || 'your-store'}.isoko.store</span>
+                    </p>
+                    {subdomainStatus === 'available' && (
+                      <p className="text-sm text-green-600 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> This subdomain is available!
+                      </p>
+                    )}
+                    {subdomainStatus === 'taken' && (
+                      <p className="text-sm text-red-600 flex items-center gap-1">
+                        <XCircle className="h-3 w-3" /> This subdomain is already taken
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
