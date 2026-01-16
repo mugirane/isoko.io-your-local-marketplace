@@ -16,11 +16,19 @@ import { CATEGORIES } from "@/lib/types";
 import { useStore, useStoreProducts } from "@/hooks/useStores";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+interface StorePageProps {
+  subdomain: string;
+}
 
-const StorePage = () => {
+const StorePage: React.FC<StorePageProps> = ({ subdomain }) => {
+  
   const { id } = useParams();
-  const { data: store, isLoading: storeLoading, refetch: refetchStore } = useStore(id);
-  const { data: storeProducts = [], isLoading: productsLoading } = useStoreProducts(id);
+  // const { data: store, isLoading: storeLoading, refetch: refetchStore } = useStore(id);
+  const { data: store, isLoading } = useStoreBySubdomain(subdomain);
+
+const storeId = store?.id;
+  const resolvedStoreId = storeId ?? id ?? undefined;
+  const { data: storeProducts = [], isLoading: productsLoading } = useStoreProducts(resolvedStoreId);
   const category = CATEGORIES.find((c) => c.id === store?.category);
   
   const [isFollowing, setIsFollowing] = useState(false);
