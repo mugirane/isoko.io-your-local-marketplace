@@ -54,7 +54,7 @@ const ProductCard = ({ product, store, index = 0 }: ProductCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Link to={`/product/${product.id}`}>
+      <Link to={`https://isoko.store/product/${product.id}`}>
         <Card variant="product" className="h-full flex flex-col">
           {/* Image - compact on mobile */}
           <div className="relative aspect-square overflow-hidden bg-secondary">
